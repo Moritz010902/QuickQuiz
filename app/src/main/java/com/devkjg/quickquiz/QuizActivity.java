@@ -40,21 +40,24 @@ public class QuizActivity extends AppCompatActivity {
 
         answerA.setOnClickListener(view -> {
             answerA.animate().start();
-            initiateWaitingRoom();
+            initiateWaitingRoom(1);
         });
         answerB.setOnClickListener(view -> {
             answerB.animate().start();
+            initiateWaitingRoom(2);
         });
         answerC.setOnClickListener(view -> {
             answerC.animate().start();
+            initiateWaitingRoom(3);
         });
         answerD.setOnClickListener(view -> {
             answerD.animate().start();
+            initiateWaitingRoom(4);
         });
 
     }
 
-    private void initiateWaitingRoom() {
+    private void initiateWaitingRoom(int answer) {
 
         setContentView(R.layout.quiz_waitingroom);
         ConstraintLayout layout = findViewById(R.id.waitingRoom);
