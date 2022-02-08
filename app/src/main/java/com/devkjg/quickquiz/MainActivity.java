@@ -1,17 +1,51 @@
 package com.devkjg.quickquiz;
 
 import android.content.Intent;
+import android.text.Layout;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
+
+    SpeechRecognizer speechRecognizer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Intent intent = new Intent(this, QuizActivity.class);
-        startActivity(intent);
+        speechRecognizer = new SpeechRecognizer(this, new OnRecognizeAction() {
+            @Override
+            public void run() {
+                //TODO: implement quiz process
+                Toast.makeText(getApplicationContext(), getRecognitionResult(), Toast.LENGTH_SHORT).show();
+                speechRecognizer.stopListening();
+            }
+        });
+
+        //TODO: remove test code
+        View btnHost = findViewById(R.id.createGame);
+        View btnPlayer = findViewById(R.id.enterGame);
+
+        btnHost.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), QuizHostActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        btnPlayer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), QuizActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
 }

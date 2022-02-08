@@ -1,7 +1,10 @@
 package com.devkjg.quickquiz;
 
+import android.content.Intent;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.util.Log;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -18,10 +21,18 @@ import java.nio.ByteOrder;
 
 public class QuizHostActivity extends AppCompatActivity {
 
+    Client client;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quiz_host);
+
+        //TODO: remove test code
+        Log.i("CONNECTION", "continue als host");
+        client = new Client();
+        client.enableConnection(30000);
+
     }
 
     private void recordQuestion() {
@@ -40,10 +51,14 @@ public class QuizHostActivity extends AppCompatActivity {
 
     }
 
-    static abstract class Connection extends QuizHostActivity {
+    /**
+     https://www.tutorialspoint.com/client-server-programming-in-android
+     */
+    static class Client extends QuizHostActivity {
 
+        private final String logTag = "CONNECTION";
         private Socket socket;
-        private static final int SERVER_PORT = 8080;
+        private final int SERVER_PORT = 8080;
         private PrintWriter output;
         private BufferedReader input;
 
@@ -51,11 +66,13 @@ public class QuizHostActivity extends AppCompatActivity {
         private Message message;
 
 
-        public void enableConnection() {
+        public void enableConnection(long timeout) {
 
+            long timestamp = System.currentTimeMillis();
             Runnable run = new Runnable() {
                 @Override
                 public void run() {
+                    Log.i(logTag, "prepare ... ("+((int) (System.currentTimeMillis()-timestamp)/1000)+"s left)");
                     try {
                         ServerSocket serverSocket = new ServerSocket(SERVER_PORT);
                         try {
@@ -63,15 +80,15 @@ public class QuizHostActivity extends AppCompatActivity {
                             output = new PrintWriter(socket.getOutputStream());
                             input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                             //TODO: research for socket connection possibilities
-                            /*
-                            https://www.tutorialspoint.com/client-server-programming-in-android
-                             */
+
                             message = new Message(output);
                             listener = new Listener(input);
                             listener.startListening();
+                            Log.i(logTag, "ready to connect");
 
                         } catch (IOException e) {
-                            this.run();
+                            if((System.currentTimeMillis()-timestamp) < timeout)
+                                this.run();
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -87,9 +104,11 @@ public class QuizHostActivity extends AppCompatActivity {
         }
 
         public void send(int issue, String message) {
+            //TODO: check weather a connection exists
             String text = issue + ":" + message;
             this.message.setText(text);
             this.message.send();
+            //TODO: send to all connected clients
         }
         /*
         public void send(ArrayList<Client>() clients, int issue, String message) {
@@ -122,6 +141,9 @@ public class QuizHostActivity extends AppCompatActivity {
                                 final String message = reader.readLine();
                                 if(message != null) {
                                     //TODO: handle message
+                                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                                    String msg = String.valueOf(Integer.parseInt(message.split(":")[1])+1);
+                                    client.send(Issue.ANSWER, msg);
                                 } else {
                                     //TODO: check if connection is still alive
                                 }
@@ -176,8 +198,10 @@ public class QuizHostActivity extends AppCompatActivity {
         abstract static class Issue {
 
             static final int CONNECTION = 0;
-            static final int PROCESS = 1;
-            static final int ANSWER = 2;
+            static final int CONNECTION_REQUEST = 1;
+            static final int CONNECTION_CONFIRM = 2;
+            static final int PROCESS = 3;
+            static final int ANSWER = 4;
 
         }
 

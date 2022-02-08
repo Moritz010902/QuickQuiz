@@ -1,22 +1,29 @@
 package com.devkjg.quickquiz;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.util.Log;
-import android.view.View;
-import android.view.ViewTreeObserver;
-import android.view.animation.Animation;
-import android.widget.ProgressBar;
 import android.widget.TextView;
-import androidx.activity.OnBackPressedCallback;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.gridlayout.widget.GridLayout;
-import org.jetbrains.annotations.ApiStatus;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class QuizActivity extends AppCompatActivity {
+
+    Client client;
 
     GridLayout gridLayout;
     TextView answerA;
@@ -55,6 +62,11 @@ public class QuizActivity extends AppCompatActivity {
             initiateWaitingRoom(4);
         });
 
+        //TODO: remove test code
+        Log.i("CONNECTION", "continue als player");
+        client = new Client();
+        client.connectToHost(30000);
+
     }
 
     private void initiateWaitingRoom(int answer) {
@@ -86,6 +98,153 @@ public class QuizActivity extends AppCompatActivity {
         builder.setPositiveButton("Bestätigen", (dialogInterface, i) -> QuizActivity.super.onBackPressed());
         builder.setNegativeButton("Abbrechen", (dialogInterface, i) -> dialogInterface.cancel());
         builder.create().show();
+
+    }
+
+
+    static class Client extends QuizActivity {
+
+        private final String logTag = "CONNECTION";
+        private Socket socket;
+        private static String SERVER_IP;
+        private static final int SERVER_PORT = 8080;
+        private PrintWriter output;
+        private BufferedReader input;
+
+        private Listener listener;
+        private Message message;
+
+
+        public void connectToHost(long timeout) {
+
+            long timestamp = System.currentTimeMillis();
+            Runnable run = new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        SERVER_IP = getLocalIpAddress();
+                        socket = new Socket(SERVER_IP, SERVER_PORT);
+                        output = new PrintWriter(socket.getOutputStream());
+                        input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                        message = new Message(output);
+                        listener = new Listener(input);
+                        listener.startListening();
+                        Log.i(logTag, "connected");
+                        client.send(Issue.ANSWER, "0");
+                    } catch (IOException e) {
+                        if((System.currentTimeMillis()-timestamp) < timeout)
+                            this.run();
+                    }
+
+                }
+            };
+            new Thread(run).start();
+
+        }
+
+        public void disconnectFromHost() {
+            listener.stopListening();
+        }
+
+        public void send(int issue, String message) {
+            //TODO: check weather a connection exists
+            String text = issue + ":" + message;
+            this.message.setText(text);
+            this.message.send();
+        }
+
+        private String getLocalIpAddress() throws UnknownHostException {
+
+            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+            assert wifiManager != null;
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            int ipInt = wifiInfo.getIpAddress();
+
+            return InetAddress.getByAddress(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipInt).array()).getHostAddress();
+        }
+
+
+        private class Listener {
+
+            boolean listen;
+            Runnable run;
+
+            Listener(BufferedReader reader) {
+
+                run = new Runnable() {
+                    @Override
+                    public void run() {
+
+                        while(listen) {
+                            try {
+                                final String message = reader.readLine();
+                                if(message != null) {
+                                    //TODO: handle message
+                                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                                    String msg = String.valueOf(Integer.parseInt(message.split(":")[1])+1);
+                                    client.send(QuizHostActivity.Client.Issue.ANSWER, msg);
+                                } else {
+                                    //TODO: check if connection is still alive
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    }
+                };
+
+            }
+
+            void startListening() {
+                if(!listen) {
+                    listen = true;
+                    new Thread(run).start();
+                }
+            }
+
+            void stopListening() {
+                listen = false;
+            }
+
+        }
+
+        private class Message {
+
+            Runnable run;
+            String text;
+
+            Message(PrintWriter writer) {
+                run = new Runnable() {
+                    @Override
+                    public void run() {
+                        writer.write(text);
+                        writer.flush();
+                    }
+                };
+            }
+
+            void setText(String text) {
+                this.text = text;
+            }
+
+            void send() {
+                new Thread(run).start();
+            }
+
+        }
+
+        abstract static class Issue {
+
+            static final int CONNECTION = 0;
+            static final int CONNECTION_REQUEST = 1;
+            static final int CONNECTION_CONFIRM = 2;
+            static final int PROCESS = 3;
+            static final int ANSWER = 4;
+
+        }
 
     }
 }
