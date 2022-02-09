@@ -29,7 +29,6 @@ public class QuizHostActivity extends AppCompatActivity {
         setContentView(R.layout.activity_quiz_host);
 
         //TODO: remove test code
-        Log.i("CONNECTION", "continue als host");
         client = new Client();
         client.enableConnection(30000);
 
@@ -72,7 +71,7 @@ public class QuizHostActivity extends AppCompatActivity {
             Runnable run = new Runnable() {
                 @Override
                 public void run() {
-                    Log.i(logTag, "prepare ... ("+((int) (System.currentTimeMillis()-timestamp)/1000)+"s left)");
+                    Log.i(logTag, "host: prepare ... ("+((int) (timeout-(System.currentTimeMillis()-timestamp))/1000)+"s left)");
                     try {
                         ServerSocket serverSocket = new ServerSocket(SERVER_PORT);
                         try {
@@ -84,7 +83,6 @@ public class QuizHostActivity extends AppCompatActivity {
                             message = new Message(output);
                             listener = new Listener(input);
                             listener.startListening();
-                            Log.i(logTag, "ready to connect");
 
                         } catch (IOException e) {
                             if((System.currentTimeMillis()-timestamp) < timeout)
@@ -115,15 +113,6 @@ public class QuizHostActivity extends AppCompatActivity {
 
         }
         */
-        private String getLocalIpAddress() throws UnknownHostException {
-
-            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-            assert wifiManager != null;
-            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-            int ipInt = wifiInfo.getIpAddress();
-
-            return InetAddress.getByAddress(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipInt).array()).getHostAddress();
-        }
 
         private class Listener {
 
@@ -144,6 +133,7 @@ public class QuizHostActivity extends AppCompatActivity {
                                     Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
                                     String msg = String.valueOf(Integer.parseInt(message.split(":")[1])+1);
                                     client.send(Issue.ANSWER, msg);
+                                    Log.i(logTag, "new data: \"" + msg + "\"");
                                 } else {
                                     //TODO: check if connection is still alive
                                 }
@@ -161,6 +151,7 @@ public class QuizHostActivity extends AppCompatActivity {
                 if(!listen) {
                     listen = true;
                     new Thread(run).start();
+                    Log.i(logTag, "host: ready for communication");
                 }
             }
 
@@ -179,6 +170,7 @@ public class QuizHostActivity extends AppCompatActivity {
                 run = new Runnable() {
                     @Override
                     public void run() {
+                        Log.i(logTag, "send data: \"" + text  + "\"");
                         writer.write(text);
                         writer.flush();
                     }

@@ -1,6 +1,7 @@
 package com.devkjg.quickquiz;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
@@ -64,7 +65,7 @@ public class QuizActivity extends AppCompatActivity {
 
         //TODO: remove test code
         Log.i("CONNECTION", "continue als player");
-        client = new Client();
+        client = new Client(this);
         client.connectToHost(30000);
 
     }
@@ -104,7 +105,9 @@ public class QuizActivity extends AppCompatActivity {
 
     static class Client extends QuizActivity {
 
+        Context context;
         private final String logTag = "CONNECTION";
+
         private Socket socket;
         private static String SERVER_IP;
         private static final int SERVER_PORT = 8080;
@@ -114,6 +117,10 @@ public class QuizActivity extends AppCompatActivity {
         private Listener listener;
         private Message message;
 
+
+        Client(Context context) {
+            this.context = context;
+        }
 
         public void connectToHost(long timeout) {
 
@@ -157,7 +164,7 @@ public class QuizActivity extends AppCompatActivity {
 
         private String getLocalIpAddress() throws UnknownHostException {
 
-            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+            WifiManager wifiManager = (WifiManager) context.getSystemService(WIFI_SERVICE);
             assert wifiManager != null;
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             int ipInt = wifiInfo.getIpAddress();
