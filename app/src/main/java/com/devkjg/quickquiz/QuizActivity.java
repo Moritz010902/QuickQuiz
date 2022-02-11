@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
 import androidx.gridlayout.widget.GridLayout;
 
 import java.io.BufferedReader;
@@ -64,7 +65,7 @@ public class QuizActivity extends AppCompatActivity {
         });
 
         //TODO: remove test code
-        Log.i("CONNECTION", "continue als player");
+        Log.i("CONNECTION", "continue as player");
         client = new Client(this);
         client.connectToHost(30000);
 
@@ -103,6 +104,11 @@ public class QuizActivity extends AppCompatActivity {
     }
 
 
+    /*
+    https://www.codejava.net/java-se/networking/java-socket-server-examples-tcp-ip#:~:text=%20Java%20Socket%20Server%20Examples%20%28TCP%2FIP%29%20%201,Server%20%28single-threaded%29%0ANext%2C%20let%E2%80%99s%20see%20a%20more...%20More%20
+    https://www.codejava.net/java-se/networking/java-socket-client-examples-tcp-ip
+    https://www.viresist.org/java-tutorials/wie-kann-ich-uberprufen-ob-eine-app-auf-android-lauft/
+     */
     static class Client extends QuizActivity {
 
         Context context;
@@ -110,7 +116,7 @@ public class QuizActivity extends AppCompatActivity {
 
         private Socket socket;
         private static String SERVER_IP;
-        private static final int SERVER_PORT = 8080;
+        private static final int SERVER_PORT = 6868;
         private PrintWriter output;
         private BufferedReader input;
 
@@ -132,17 +138,29 @@ public class QuizActivity extends AppCompatActivity {
                     try {
                         SERVER_IP = getLocalIpAddress();
                         socket = new Socket(SERVER_IP, SERVER_PORT);
+                        Log.i(logTag, "connected");
                         output = new PrintWriter(socket.getOutputStream());
                         input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                         message = new Message(output);
                         listener = new Listener(input);
                         listener.startListening();
-                        Log.i(logTag, "connected");
                         client.send(Issue.ANSWER, "0");
                     } catch (IOException e) {
-                        if((System.currentTimeMillis()-timestamp) < timeout)
+                        //TODO: check weather the QuizActivity is active or not
+                        if((System.currentTimeMillis()-timestamp) < timeout) {
+                            try {
+                                synchronized (Thread.currentThread()) {
+                                    Thread.currentThread().wait(2000);
+                                }
+                            } catch (InterruptedException ex) {
+                                ex.printStackTrace();
+                            }
+                            Log.i(logTag, "try to connect ... ("+((int) (timeout-(System.currentTimeMillis()-timestamp))/1000)+"s left)");
                             this.run();
+                        } else {
+                            finish();
+                        }
                     }
 
                 }
@@ -191,7 +209,13 @@ public class QuizActivity extends AppCompatActivity {
                                     //TODO: handle message
                                     Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
                                     String msg = String.valueOf(Integer.parseInt(message.split(":")[1])+1);
-                                    client.send(QuizHostActivity.Client.Issue.ANSWER, msg);
+                                    try {
+                                        Thread.sleep(10000);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    client.send(QuizActivity.Client.Issue.ANSWER, msg);
+                                    Log.i(logTag, "(client) new data: \"" + msg + "\"");
                                 } else {
                                     //TODO: check if connection is still alive
                                 }

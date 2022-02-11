@@ -19,6 +19,7 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+
 public class QuizHostActivity extends AppCompatActivity {
 
     Client client;
@@ -46,7 +47,7 @@ public class QuizHostActivity extends AppCompatActivity {
 
     }
 
-    private void showAnswer() {
+    private void showAnswers() {
 
     }
 
@@ -57,7 +58,7 @@ public class QuizHostActivity extends AppCompatActivity {
 
         private final String logTag = "CONNECTION";
         private Socket socket;
-        private final int SERVER_PORT = 8080;
+        private final int SERVER_PORT = 6868;
         private PrintWriter output;
         private BufferedReader input;
 
@@ -132,8 +133,13 @@ public class QuizHostActivity extends AppCompatActivity {
                                     //TODO: handle message
                                     Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
                                     String msg = String.valueOf(Integer.parseInt(message.split(":")[1])+1);
+                                    try {
+                                        Thread.sleep(1000);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
                                     client.send(Issue.ANSWER, msg);
-                                    Log.i(logTag, "new data: \"" + msg + "\"");
+                                    Log.i(logTag, "(host) new data: \"" + msg + "\"");
                                 } else {
                                     //TODO: check if connection is still alive
                                 }
