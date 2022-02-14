@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.StrictMode;
 import android.util.Log;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,14 +15,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Enumeration;
 
 /*
+https://docs.oracle.com/javase/tutorial/networking/datagrams/clientServer.html
     https://www.tutorialspoint.com/client-server-programming-in-android
     https://www.codejava.net/java-se/networking/java-socket-server-examples-tcp-ip#:~:text=%20Java%20Socket%20Server%20Examples%20%28TCP%2FIP%29%20%201,Server%20%28single-threaded%29%0ANext%2C%20let%E2%80%99s%20see%20a%20more...%20More%20
     https://www.codejava.net/java-se/networking/java-socket-client-examples-tcp-ip
@@ -67,6 +67,72 @@ public abstract class Connection extends AppCompatActivity {
 
         Host(Context context) {
             this.context = context;
+            /*
+            try {
+                StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+                StrictMode.setThreadPolicy(policy);
+
+                String address = InetAddress.getLocalHost().getHostAddress();
+                Log.e(logTag, address);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+            */
+            String ip;
+            try {
+                Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+                while (interfaces.hasMoreElements()) {
+                    NetworkInterface iface = interfaces.nextElement();
+                    // filters out 127.0.0.1 and inactive interfaces
+                    if (iface.isLoopback() || !iface.isUp() || iface.isVirtual())
+                        continue;
+
+                    Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                    while(addresses.hasMoreElements()) {
+                        InetAddress addr = addresses.nextElement();
+                        ip = addr.getHostAddress();
+                        //System.out.println(iface.getDisplayName() + " " + ip);
+                    }
+                }
+            } catch (SocketException e) {
+                throw new RuntimeException(e);
+            }
+
+
+            try {
+                Enumeration e = NetworkInterface.getNetworkInterfaces();
+                int ctr=0;
+                while(e.hasMoreElements())
+                {
+                    NetworkInterface n = (NetworkInterface) e.nextElement();
+                    Enumeration ee = n.getInetAddresses();
+                    while (ee.hasMoreElements() && ctr<3)
+                    {       ctr++;
+                        if(ctr==3)
+                            break;
+                        InetAddress i = (InetAddress) ee.nextElement();
+                        if(ctr==2) {
+                            Log.e(logTag, i.getHostAddress());
+                        }
+
+                    }
+                }
+            } catch (SocketException ex) {
+                ex.printStackTrace();
+            }
+
+            try(final DatagramSocket socket = new DatagramSocket()){
+                StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+                StrictMode.setThreadPolicy(policy);
+
+                socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+                ip = socket.getLocalAddress().getHostAddress();
+                socket.disconnect();
+                Log.e(logTag, ip);
+            } catch (SocketException | UnknownHostException e) {
+                e.printStackTrace();
+            }
+
         }
 
         public void enableConnection(long timeout) {
