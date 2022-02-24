@@ -30,20 +30,36 @@ public class MainActivity extends AppCompatActivity {
         //TODO: remove test code
         View btnHost = findViewById(R.id.createGame);
         View btnPlayer = findViewById(R.id.enterGame);
-
+        final boolean[] block = {false};
         btnHost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                /*
                 Intent intent = new Intent(getApplicationContext(), QuizHostActivity.class);
                 startActivity(intent);
+                 */
+                if(!block[0]) {
+                    Log.e("MODE", "send broadcast packets");
+                    TestConnection c = new TestConnection(getApplicationContext());
+                    c.broadcastGameInvitation(3000);
+                    block[0] = true;
+                }
             }
         });
 
         btnPlayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                /*
                 Intent intent = new Intent(getApplicationContext(), QuizActivity.class);
                 startActivity(intent);
+                 */
+                if(!block[0]) {
+                    Log.e("MODE", "listening");
+                    TestConnection c = new TestConnection(getApplicationContext());
+                    c.listenForGameInvitation();
+                    block[0] = true;
+                }
             }
         });
 
