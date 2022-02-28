@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
                 if(!block[0]) {
                     Log.e("MODE", "send broadcast packets");
                     TestConnection c = new TestConnection(getApplicationContext());
-                    c.broadcastGameInvitation(3000);
+                    c.broadcastGameInvitation(1234,3000);
                     block[0] = true;
                 }
             }
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
                 if(!block[0]) {
                     Log.e("MODE", "listening");
                     TestConnection c = new TestConnection(getApplicationContext());
-                    c.listenForGameInvitation();
+                    c.listenForGameInvitation(1234);
                     block[0] = true;
                 }
             }
