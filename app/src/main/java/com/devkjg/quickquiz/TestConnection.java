@@ -26,7 +26,7 @@ public class TestConnection extends AppCompatActivity {
     private Context context;
     private InetAddress address = null;
     private Integer port = null;
-    private QuoteClient client = null;
+    private Client client = null;
 
 
     TestConnection(Context context) {
@@ -34,7 +34,8 @@ public class TestConnection extends AppCompatActivity {
     }
 
     public void broadcastGameInvitation(int gameId, long frequency) {
-        new MulticastServer(String.valueOf(gameId), frequency);
+        new MulticastServer(String.valueOf(gameId), frequency);Log.e("CONTINUE", "---");
+        new Server();
     }
 
     public void listenForGameInvitation(int gameId) {
@@ -42,18 +43,18 @@ public class TestConnection extends AppCompatActivity {
     }
 
     private void connectTo(int gameId, InetAddress address, int port) {
-        client = new QuoteClient(gameId, address, port);
+        client = new Client(gameId, address, port);
     }
 
 
-    private class QuoteClient {
+    private class Client {
 
         private DatagramSocket socket;
         private InetAddress hostAddress;
         private int port;
 
 
-        QuoteClient(int gameId, InetAddress hostAddress, int port) {
+        Client(int gameId, InetAddress hostAddress, int port) {
             try{
 
                 socket = new DatagramSocket();
@@ -61,10 +62,10 @@ public class TestConnection extends AppCompatActivity {
                 this.port = port;
 
                 // response to invitation
-                sendMessage(Issue.CONNECTION_REQUEST, String.valueOf(gameId), new RunOnComplete() {
+                sendMessage(new Message(Issue.CONNECTION_REQUEST, String.valueOf(gameId)), new RunOnComplete() {
                     @Override
                     public void run() {
-                        if(Message.isIssue(getResult(), Issue.CONNECTION_CONFIRM)) {
+                        if(Message.isIssue(getResult(), Issue.CONNECTION_CONFIRM) == Boolean.TRUE) {
                             Intent intent = new Intent(context.getApplicationContext(), LobbyActivity.class);
                             startActivity(intent);
                         }
@@ -76,14 +77,14 @@ public class TestConnection extends AppCompatActivity {
             }
         }
 
-        public void sendMessage(String issue, String message, RunOnComplete onComplete) {
+        public void sendMessage(Message message, RunOnComplete onComplete) {
 
             Runnable run = new Runnable() {
                 @Override
                 public void run() {
                     try {
 
-                        String text = issue.hashCode() + ":" + message;
+                        String text = message.getText();
                         byte[] buf = text.getBytes();
                         DatagramPacket packet = new DatagramPacket(buf, buf.length, hostAddress, port);
                         socket.send(packet);
@@ -178,11 +179,11 @@ public class TestConnection extends AppCompatActivity {
 
     }
 
-    private class QuoteServer {
+    private class Server {
 
-        QuoteServer() {
+        Server() {
             try {
-                new QuoteServerThread().start();
+                new ServerThread().start();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -202,20 +203,20 @@ public class TestConnection extends AppCompatActivity {
 
     }
 
-    private class QuoteServerThread extends Thread {
+    private class ServerThread extends Thread {
 
         protected DatagramSocket socket;
         protected BufferedReader in;
         protected boolean moreQuotes = true;
 
 
-        public QuoteServerThread() throws IOException {
-            this("QuoteServerThread");
+        public ServerThread() throws IOException {
+            this("ServerThread");
         }
 
-        public QuoteServerThread(String name) throws IOException {
+        public ServerThread(String name) throws IOException {
             super(name);
-            socket = new DatagramSocket(4346);
+            socket = new DatagramSocket(4345);
             File file = new File(context.getFilesDir(), "clients.txt");
             if(!file.exists())
                 if(!file.createNewFile())
@@ -228,26 +229,22 @@ public class TestConnection extends AppCompatActivity {
 
             while (moreQuotes) {
                 try {
+                    Log.e("SERVER", "receive");
                     byte[] buf = new byte[256];
 
                     // receive request
                     DatagramPacket packet = new DatagramPacket(buf, buf.length);
                     socket.receive(packet);
-
+                    Log.d("SERVER", new String(packet.getData(), 0, packet.getLength()));
                     // figure out response
-                    String dString;
-                    if (in == null) {
-                        dString = new Date().toString();
-                    } else {
-                        dString = getNextQuote();
-                    }
-                    buf = dString.getBytes();
+                    buf = getResponse(new String(packet.getData(), 0, packet.getLength())).getText().getBytes();
 
                     // send the response to the client at "address" and "port"
                     InetAddress address = packet.getAddress();
                     int port = packet.getPort();
                     packet = new DatagramPacket(buf, buf.length, address, port);
                     socket.send(packet);
+
                 } catch (IOException e) {
                     e.printStackTrace();
                     moreQuotes = false;
@@ -256,7 +253,24 @@ public class TestConnection extends AppCompatActivity {
             socket.close();
         }
 
-        protected String getNextQuote() {
+        protected Message getResponse(String message) {
+            if(!Message.isValid(message))
+                return null;
+
+            try {
+                if (Message.isIssue(message, Issue.CONNECTION_REQUEST) == Boolean.TRUE) {
+                    //TODO: replace "1234" by variable gameId
+                    if (Message.getContent(message).equals("1234"))
+                        return new Message(Issue.CONNECTION_CONFIRM, "1234");
+                }
+            } catch (NullPointerException e) {
+                return null;
+            }
+            return null;
+        }
+
+        /*
+        protected String getResponse(String message) {
             String returnValue = null;
             try {
                 if ((returnValue = in.readLine()) == null) {
@@ -269,9 +283,10 @@ public class TestConnection extends AppCompatActivity {
             }
             return returnValue;
         }
+        */
     }
 
-    private class MulticastServerThread extends QuoteServerThread {
+    private class MulticastServerThread extends ServerThread {
 
         private long timeout;
         private String message;
