@@ -2,9 +2,7 @@ package com.devkjg.quickquiz;
 
 import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.StrictMode;
 import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,8 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.regex.Pattern;
 
 
@@ -24,9 +20,13 @@ https://www.programmerall.com/article/58251638107/
 public class TestConnection extends AppCompatActivity {
 
     private Context context;
-    private InetAddress address = null;
-    private Integer port = null;
-    private Client client = null;
+    private InetAddress connectedAddress = null;
+    private Integer connectedPort = null;
+    private Client connectedClient = null;
+    private Server server = null;
+    protected final String multicastAddress = "230.100.221.1";
+    protected final int multicastPort = 4336;
+    protected final int port = 4346;
 
 
     TestConnection(Context context) {
@@ -34,8 +34,8 @@ public class TestConnection extends AppCompatActivity {
     }
 
     public void broadcastGameInvitation(int gameId, long frequency) {
-        new MulticastServer(String.valueOf(gameId), frequency);Log.e("CONTINUE", "---");
-        new Server();
+        new MulticastServer(String.valueOf(gameId), frequency);
+        server = new Server();
     }
 
     public void listenForGameInvitation(int gameId) {
@@ -43,31 +43,35 @@ public class TestConnection extends AppCompatActivity {
     }
 
     private void connectTo(int gameId, InetAddress address, int port) {
-        client = new Client(gameId, address, port);
+        connectedClient = new Client(gameId, address, port);
     }
 
 
     private class Client {
 
+        private final String logTag = "CLIENT";
         private DatagramSocket socket;
         private InetAddress hostAddress;
-        private int port;
+        private int hostPort;
 
 
-        Client(int gameId, InetAddress hostAddress, int port) {
+        Client(int gameId, InetAddress hostAddress, int hostPort) {
             try{
 
-                socket = new DatagramSocket();
+                socket = new DatagramSocket(hostPort);
                 this.hostAddress = hostAddress;
-                this.port = port;
-
+                this.hostPort = hostPort;
+                Log.d(logTag, hostAddress.getHostAddress());
                 // response to invitation
                 sendMessage(new Message(Issue.CONNECTION_REQUEST, String.valueOf(gameId)), new RunOnComplete() {
                     @Override
                     public void run() {
+                        assert Message.isValid(getResult());
                         if(Message.isIssue(getResult(), Issue.CONNECTION_CONFIRM) == Boolean.TRUE) {
-                            Intent intent = new Intent(context.getApplicationContext(), LobbyActivity.class);
-                            startActivity(intent);
+                            if(Message.getContent(getResult()).equals(String.valueOf(gameId))) {
+                                Intent intent = new Intent(context.getApplicationContext(), LobbyActivity.class);
+                                startActivity(intent);
+                            }
                         }
                     }
                 });
@@ -86,8 +90,9 @@ public class TestConnection extends AppCompatActivity {
 
                         String text = message.getText();
                         byte[] buf = text.getBytes();
-                        DatagramPacket packet = new DatagramPacket(buf, buf.length, hostAddress, port);
+                        DatagramPacket packet = new DatagramPacket(buf, buf.length, hostAddress, hostPort);
                         socket.send(packet);
+                        Log.i(logTag, "send: " + message.getText());
 
                         // get response
                         packet = new DatagramPacket(buf, buf.length);
@@ -95,7 +100,7 @@ public class TestConnection extends AppCompatActivity {
 
                         // display response
                         String received = new String(packet.getData(), 0, packet.getLength());
-                        System.out.println("Quote of the Moment: " + received);
+                        Log.i(logTag, "received: " + received);
 
                         socket.close();
                         if(onComplete != null) {
@@ -116,6 +121,7 @@ public class TestConnection extends AppCompatActivity {
 
     private class MulticastClient {
 
+        private final String logTag = "MULTICAST_CLIENT";
         private MulticastSocket socket;
         private InetAddress address;
         private WifiManager.MulticastLock multicastLock;
@@ -127,8 +133,8 @@ public class TestConnection extends AppCompatActivity {
                 StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
                 StrictMode.setThreadPolicy(policy);
 
-                socket = new MulticastSocket(4336);
-                address = InetAddress.getByName("230.100.221.1");
+                socket = new MulticastSocket(multicastPort);
+                address = InetAddress.getByName(multicastAddress);
                 socket.setNetworkInterface(NetworkInterface.getByName("wlan0"));
                 socket.joinGroup(address);
 
@@ -136,24 +142,23 @@ public class TestConnection extends AppCompatActivity {
                 WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
                 multicastLock = wifiManager.createMulticastLock("multicast.quickquiz");
                 multicastLock.acquire();
+                Log.i(logTag, "successfully created");
 
-                //get a quote
                 DatagramPacket packet;
                 byte[] buf = new byte[256];
                 //TODO: implement timeout
                 boolean listen = true;
                 while (listen) {
-                    packet = new DatagramPacket(buf, buf.length);
 
-                    Log.d("RECEIVE", "start listening");
+                    packet = new DatagramPacket(buf, buf.length);
                     socket.receive(packet);
                     String received = new String(packet.getData(), 0, packet.getLength());
-                    System.out.println("Quote received: " + received);
+                    Log.i(logTag, "received: " + received);
 
                     if(!Message.isValid(received))
                         continue;
                     if(Message.getContent(received).equals(expectMessage)) {
-                        connectTo(Integer.parseInt(expectMessage), packet.getAddress(), packet.getPort());
+                        connectTo(Integer.parseInt(expectMessage), packet.getAddress(), port);
                         listen = false;
                         disable();
                     }
@@ -181,21 +186,44 @@ public class TestConnection extends AppCompatActivity {
 
     private class Server {
 
+        private final String logTag = "SERVER";
+        private ServerThread serverThread;
+
         Server() {
             try {
-                new ServerThread().start();
+                serverThread = new ServerThread();
+                serverThread.start();
+                Log.i(logTag, "successfully started");
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+            try {
+                Log.d(logTag, InetAddress.getLocalHost().getHostAddress());
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void broadcast(Message message, RunOnComplete onComplete) {
+            serverThread.broadcast(message, onComplete);
+        }
+
+        public void send(Client client, Message message, RunOnComplete onComplete) {
+            serverThread.send(client, message, onComplete);
         }
 
     }
 
     private class MulticastServer {
 
+        private final String logTag = "MULTICAST_SERVER";
+
         MulticastServer(String message, long timeout) {
             try {
                 new MulticastServerThread(message, timeout).start();
+                Log.i(logTag, "successfully started");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -205,6 +233,7 @@ public class TestConnection extends AppCompatActivity {
 
     private class ServerThread extends Thread {
 
+        private final String logTag = "SERVER";
         protected DatagramSocket socket;
         protected BufferedReader in;
         protected boolean moreQuotes = true;
@@ -216,34 +245,40 @@ public class TestConnection extends AppCompatActivity {
 
         public ServerThread(String name) throws IOException {
             super(name);
-            socket = new DatagramSocket(4345);
+            socket = new DatagramSocket();
+
             File file = new File(context.getFilesDir(), "clients.txt");
             if(!file.exists())
                 if(!file.createNewFile())
-                    Log.e("SERVER", "failed to create registry file");
+                    Log.e(logTag, "failed to create registry file");
             FileInputStream fin = context.openFileInput(file.getName());
             in = new BufferedReader(new InputStreamReader(fin, StandardCharsets.UTF_8));
+
+            Log.i(logTag, "successfully created");
         }
 
         public void run() {
 
             while (moreQuotes) {
                 try {
-                    Log.e("SERVER", "receive");
-                    byte[] buf = new byte[256];
 
+                    byte[] buf = new byte[256];
+                    Log.d(logTag, "listen");
                     // receive request
                     DatagramPacket packet = new DatagramPacket(buf, buf.length);
                     socket.receive(packet);
-                    Log.d("SERVER", new String(packet.getData(), 0, packet.getLength()));
+                    Log.i(logTag, "received: " + new String(packet.getData(), 0, packet.getLength()));
+
                     // figure out response
-                    buf = getResponse(new String(packet.getData(), 0, packet.getLength())).getText().getBytes();
+                    String response = getResponse(new String(packet.getData(), 0, packet.getLength())).getText();
+                    buf = response.getBytes();
 
                     // send the response to the client at "address" and "port"
                     InetAddress address = packet.getAddress();
                     int port = packet.getPort();
                     packet = new DatagramPacket(buf, buf.length, address, port);
                     socket.send(packet);
+                    Log.i(logTag, "respond: " + response);
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -251,6 +286,18 @@ public class TestConnection extends AppCompatActivity {
                 }
             }
             socket.close();
+        }
+
+        public void broadcast(Message message, RunOnComplete onComplete) {
+
+
+
+        }
+
+        public void send(Client client, Message message, RunOnComplete onComplete) {
+
+
+
         }
 
         protected Message getResponse(String message) {
@@ -286,32 +333,37 @@ public class TestConnection extends AppCompatActivity {
         */
     }
 
-    private class MulticastServerThread extends ServerThread {
+    private class MulticastServerThread extends Thread {
 
-        private long timeout;
-        private String message;
+        private final String logTag = "MULTICAST_SERVER";
+        protected long timeout;
+        protected String message;
+        protected boolean moreQuotes = true;
 
         public MulticastServerThread(String message, long timeout) throws IOException {
             super("MulticastServerThread");
             this.timeout = timeout;
             this.message = message;
+            Log.i(logTag, "successfully created");
         }
 
         public void run() {
             try {
-                InetAddress group = InetAddress.getByName("230.100.221.1");
+                InetAddress group = InetAddress.getByName(multicastAddress);
+                MulticastSocket socket = new MulticastSocket(multicastPort);
+                socket.setBroadcast(true);
+                socket.joinGroup(group);
+
                 while (moreQuotes) {
 
                     // construct quote
                     byte[] buf = new Message(Issue.BROADCAST, message).getText().getBytes();
+
                     // send it
-                    MulticastSocket s = new MulticastSocket(4336);
-                    DatagramPacket packet = new DatagramPacket(buf, buf.length, group, 4336);
-                    s.setBroadcast(true);
-                    s.joinGroup(group);
-                    s.send(packet);
-                    Log.d("DATA SEND", Arrays.toString(buf) + " | " + System.currentTimeMillis()/3600);
-                    //socket.send(packet);
+                    DatagramPacket packet = new DatagramPacket(buf, buf.length, group, multicastPort);
+                    socket.send(packet);
+
+                    Log.i(logTag, "send: " + message);
 
                     // sleep for a while
                     synchronized (Thread.currentThread()) {
