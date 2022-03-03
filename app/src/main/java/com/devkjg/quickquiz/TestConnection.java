@@ -34,8 +34,8 @@ public class TestConnection extends AppCompatActivity {
     }
 
     public void broadcastGameInvitation(int gameId, long frequency) {
-        new MulticastServer(String.valueOf(gameId), frequency);
         server = new Server();
+        new MulticastServer(String.valueOf(gameId), frequency);
     }
 
     public void listenForGameInvitation(int gameId) {
@@ -135,7 +135,7 @@ public class TestConnection extends AppCompatActivity {
 
                 socket = new MulticastSocket(multicastPort);
                 address = InetAddress.getByName(multicastAddress);
-                socket.setNetworkInterface(NetworkInterface.getByName("wlan0"));
+                socket.setNetworkInterface(NetworkInterface.getByInetAddress(InetAddress.getLocalHost()));
                 socket.joinGroup(address);
 
                 //receive messages from multicast addresses
@@ -176,6 +176,7 @@ public class TestConnection extends AppCompatActivity {
                     multicastLock.release();
                 socket.leaveGroup(address);
                 socket.close();
+                Log.i(logTag, "disabled");
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -199,11 +200,6 @@ public class TestConnection extends AppCompatActivity {
             }
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
-            try {
-                Log.d(logTag, InetAddress.getLocalHost().getHostAddress());
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
         }
 
         public void broadcast(Message message, RunOnComplete onComplete) {
@@ -245,7 +241,7 @@ public class TestConnection extends AppCompatActivity {
 
         public ServerThread(String name) throws IOException {
             super(name);
-            socket = new DatagramSocket();
+            socket = new DatagramSocket(port);
 
             File file = new File(context.getFilesDir(), "clients.txt");
             if(!file.exists())

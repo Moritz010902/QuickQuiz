@@ -1,13 +1,16 @@
 package com.devkjg.quickquiz;
 
-import android.content.Intent;
-import android.text.Layout;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,17 +32,35 @@ public class MainActivity extends AppCompatActivity {
 
         //TODO: remove test code
         View btnHost = findViewById(R.id.createGame);
-        View btnPlayer = findViewById(R.id.enterGame);
+        View btnPlayer = findViewById(R.id.joinGame);
+
+        ((TextView) btnHost.findViewById(R.id.buttonText)).setText(R.string.button_create);
+        ((TextView) btnPlayer.findViewById(R.id.buttonText)).setText(R.string.button_join);
+
         final boolean[] block = {false};
         btnHost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                // generate random gameId
+                String gameId = "";
+                Random r = new Random();
+                int[] numbers = {r.nextInt(10), r.nextInt(10), r.nextInt(10), r.nextInt(10)};
+                ArrayList<Integer> indexes = new ArrayList<>();
+                while(indexes.size() < 4) {
+                    int nextIndex = r.nextInt(4);
+                    if(!Utility.contains(nextIndex, indexes)) {
+                        gameId += String.valueOf(numbers[nextIndex]);
+                        indexes.add(nextIndex);
+                    }
+                }
+
                 /*
-                Intent intent = new Intent(getApplicationContext(), QuizHostActivity.class);
+                Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
                 startActivity(intent);
                  */
                 if(!block[0]) {
-                    Log.e("MODE", "send broadcast packets");
+                    Log.e("ROLE", "server");
                     TestConnection c = new TestConnection(getApplicationContext());
                     c.broadcastGameInvitation(1234,3000);
                     block[0] = true;
@@ -51,11 +72,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 /*
-                Intent intent = new Intent(getApplicationContext(), QuizActivity.class);
+                Intent intent = new Intent(getApplicationContext(), JoinActivity.class);
                 startActivity(intent);
                  */
                 if(!block[0]) {
-                    Log.e("MODE", "listening");
+                    Log.e("ROLE", "client");
                     TestConnection c = new TestConnection(getApplicationContext());
                     c.listenForGameInvitation(1234);
                     block[0] = true;

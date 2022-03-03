@@ -5,6 +5,8 @@ import android.view.ViewTreeObserver;
 import androidx.gridlayout.widget.GridLayout;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+
 public class Utility {
 
     public static void autoScaleLayoutChildren(@NotNull GridLayout layout) {
@@ -42,6 +44,14 @@ public class Utility {
             }
         };
         view.getViewTreeObserver().addOnPreDrawListener(preDrawListener);
+    }
+
+    public static boolean contains(Object obj, ArrayList list) {
+        for (Object o : list) {
+            if (o == obj)
+                return true;
+        }
+        return false;
     }
 
 }
