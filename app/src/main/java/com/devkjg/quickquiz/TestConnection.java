@@ -1,5 +1,6 @@
 package com.devkjg.quickquiz;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
 https://developer.android.com/training/data-storage/app-specific#java
 https://www.programmerall.com/article/58251638107/
  */
-public class TestConnection extends AppCompatActivity {
+public class TestConnection {
 
     private Context context;
     private InetAddress connectedAddress = null;
@@ -70,7 +71,8 @@ public class TestConnection extends AppCompatActivity {
                         if(Message.isIssue(getResult(), Issue.CONNECTION_CONFIRM) == Boolean.TRUE) {
                             if(Message.getContent(getResult()).equals(String.valueOf(gameId))) {
                                 Intent intent = new Intent(context.getApplicationContext(), LobbyActivity.class);
-                                startActivity(intent);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                context.startActivity(intent);
                             }
                         }
                     }

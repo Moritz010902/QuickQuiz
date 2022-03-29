@@ -1,32 +1,19 @@
 package com.devkjg.quickquiz;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.app.ActivityCompat;
 import androidx.gridlayout.widget.GridLayout;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class QuizActivity extends AppCompatActivity {
 
+    private final String logTag = "QUIZ_ACTIVITY";
+    private boolean connectedToQuiz;
     Connection.Client client;
 
     GridLayout gridLayout;
@@ -41,6 +28,7 @@ public class QuizActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quiz);
 
+        connectedToQuiz = true;
         gridLayout = findViewById(R.id.gridLayout);
         Utility.autoScaleLayoutChildren(gridLayout);
 
@@ -77,7 +65,44 @@ public class QuizActivity extends AppCompatActivity {
 
         setContentView(R.layout.quiz_waitingroom);
         ConstraintLayout layout = findViewById(R.id.waitingRoom);
+        TextView textView = layout.findViewById(R.id.textView3);
         //TODO hier weitermachen
+        Runnable run = new Runnable() {
+            @Override
+            public void run() {
+
+                String str = "waiting for other players ";
+                String text = textView.getText().toString();
+                if(text.length() == 0)
+                    text = str;
+                text = text.substring(str.length());
+
+                text += ".";
+                if(text.length() > 3)
+                    text = ".";
+
+                final String finalText = str+text;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        textView.setText(finalText);
+                    }
+                });
+                Log.d(logTag, textView.getText().toString());
+                synchronized (Thread.currentThread()) {
+                    try {
+                        Thread.sleep(900);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if(connectedToQuiz)
+                    this.run();
+            }
+        };
+        Thread waiting = new Thread(run);
+        waiting.start();
+        /*
         int size = layout.getWidth()*2/3;
         layout.findViewById(R.id.progressBar).setMinimumHeight(size);
         layout.findViewById(R.id.progressBar).setMinimumWidth(size);
@@ -90,7 +115,7 @@ public class QuizActivity extends AppCompatActivity {
                 layout.findViewById(R.id.progressBar).setMinimumWidth(size);
             }
         });
-
+*/
     }
 
     @Override
@@ -99,10 +124,15 @@ public class QuizActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Fenster schließen");
         builder.setMessage("Möchten Sie dieses Quiz wirklich verlassen?");
-        builder.setPositiveButton("Bestätigen", (dialogInterface, i) -> QuizActivity.super.onBackPressed());
+        builder.setPositiveButton("Bestätigen", (dialog, which) -> QuizActivity.super.onBackPressed());
         builder.setNegativeButton("Abbrechen", (dialogInterface, i) -> dialogInterface.cancel());
         builder.create().show();
 
     }
 
+    @Override
+    protected void onDestroy() {
+        connectedToQuiz = false;
+        super.onDestroy();
+    }
 }

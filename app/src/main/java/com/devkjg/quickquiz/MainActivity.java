@@ -1,5 +1,7 @@
 package com.devkjg.quickquiz;
 
+import android.content.Intent;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -15,6 +17,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     SpeechRecognizer speechRecognizer;
+    Thread connectionThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +34,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //TODO: remove test code
+        /*
+        Intent intent = new Intent(getApplicationContext(), QuizActivity.class);
+        startActivity(intent);
+        */
+
+
         View btnHost = findViewById(R.id.createGame);
         View btnPlayer = findViewById(R.id.joinGame);
 
@@ -55,14 +64,21 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                /*
+
                 Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
                 startActivity(intent);
-                 */
+
                 if(!block[0]) {
                     Log.e("ROLE", "server");
-                    TestConnection c = new TestConnection(getApplicationContext());
-                    c.broadcastGameInvitation(1234,3000);
+                    Runnable run = new Runnable() {
+                        @Override
+                        public void run() {
+                            TestConnection c = new TestConnection(getApplicationContext());
+                            c.broadcastGameInvitation(1234,3000);
+                        }
+                    };
+                    connectionThread = new Thread(run);
+                    connectionThread.start();
                     block[0] = true;
                 }
             }
@@ -71,14 +87,21 @@ public class MainActivity extends AppCompatActivity {
         btnPlayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /*
+
                 Intent intent = new Intent(getApplicationContext(), JoinActivity.class);
                 startActivity(intent);
-                 */
+
                 if(!block[0]) {
                     Log.e("ROLE", "client");
-                    TestConnection c = new TestConnection(getApplicationContext());
-                    c.listenForGameInvitation(1234);
+                    Runnable run = new Runnable() {
+                        @Override
+                        public void run() {
+                            TestConnection c = new TestConnection(getApplicationContext());
+                            c.listenForGameInvitation(1234);
+                        }
+                    };
+                    connectionThread = new Thread(run);
+                    connectionThread.start();
                     block[0] = true;
                 }
             }
