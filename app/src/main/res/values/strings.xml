@@ -8,4 +8,7 @@
     <string name="answer_b">B</string>
     <string name="answer_c">C</string>
     <string name="answer_d">D</string>
+    
+    <string name="lobby_host">Lobbyleiter</string>
+    <string name="lobby_playerAmount">Spieler</string>
 </resources>

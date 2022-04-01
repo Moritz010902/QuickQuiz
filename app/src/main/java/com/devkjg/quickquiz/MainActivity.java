@@ -34,10 +34,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //TODO: remove test code
-        /*
-        Intent intent = new Intent(getApplicationContext(), QuizActivity.class);
+        Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
         startActivity(intent);
-        */
+
 
 
         View btnHost = findViewById(R.id.createGame);

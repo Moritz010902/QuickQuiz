@@ -46,6 +46,47 @@ public class Utility {
         view.getViewTreeObserver().addOnPreDrawListener(preDrawListener);
     }
 
+    //TODO: remove method
+    public static int[] getMinCompCountInArea(View availableArea, ArrayList<View> views) {
+        int columns= 1;
+        int rows = 1;
+
+        if(views.size() == 0)
+            return new int[] {columns, rows};
+
+        int count = 0;
+        int dim = 0;
+        int maxWidth = availableArea.getWidth();
+        for (View v : views) {
+            dim += v.getWidth();
+            if(dim > maxWidth) {
+                if (columns > count)
+                    columns = count;
+                count = 0;
+                dim = 0;
+            } else {
+                count++;
+            }
+        }
+
+        count = 0;
+        dim = 0;
+        int maxHeight = availableArea.getHeight();
+        for (View v : views) {
+            dim += v.getHeight();
+            if(dim > maxHeight) {
+                if (rows > count)
+                    rows = count;
+                count = 0;
+                dim = 0;
+            } else {
+                count++;
+            }
+        }
+
+        return new int[] {columns, rows};
+    }
+
     public static boolean contains(Object obj, ArrayList list) {
         for (Object o : list) {
             if (o == obj)
