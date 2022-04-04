@@ -81,6 +81,13 @@ public class JoinActivity extends AppCompatActivity {
                 if(gameID.length() == 4) {
                     int id = Integer.parseInt(gameID);
                     //TODO: search for a game with given id
+                    boolean found = true;
+                    if(found) {
+                        Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Dieses Quiz existiert nicht.", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 

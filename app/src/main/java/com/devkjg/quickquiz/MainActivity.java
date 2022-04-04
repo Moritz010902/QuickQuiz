@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
         //TODO: remove test code
         Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
-        startActivity(intent);
+        //startActivity(intent);
 
 
 
@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                 Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
+                intent.putExtra("host", true);
                 startActivity(intent);
 
                 if(!block[0]) {

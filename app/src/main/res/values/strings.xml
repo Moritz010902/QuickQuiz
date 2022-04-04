@@ -3,12 +3,25 @@
 
     <string name="button_create">Spiel erstellen</string>
     <string name="button_join">Spiel beitreten</string>
+    <string name="button_continue">Weiter</string>
+    <string name="button_start">Starten</string>
+    <string name="button_record">Aufnehmen</string>
+    <string name="button_repeat">Wiederholen</string>
+    <string name="button_back">Zurück</string>
+
+    <string name="question">Quiz-Frage</string>
 
     <string name="answer_a">A</string>
     <string name="answer_b">B</string>
     <string name="answer_c">C</string>
     <string name="answer_d">D</string>
-    
+
+    <string name="answer_textA">Antwort A</string>
+    <string name="answer_textB">Antwort B</string>
+    <string name="answer_textC">Antwort C</string>
+    <string name="answer_textD">Antwort D</string>
+
     <string name="lobby_host">Lobbyleiter</string>
     <string name="lobby_playerAmount">Spieler</string>
+    <string name="lobby_yourName">Gib deinen Namen ein.</string>
 </resources>
