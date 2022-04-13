@@ -57,7 +57,7 @@ public class LobbyActivity extends AppCompatActivity {
 
             gridLayout = findViewById(R.id.gridLayout);
             gridLayout.setColumnCount(1);
-            startQuiz = findViewById(R.id.button_start);
+            startQuiz = findViewById(R.id.button_startQuiz);
 
             if(host) {
                 hostName.setText(myName);

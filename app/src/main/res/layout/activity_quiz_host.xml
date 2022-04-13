@@ -13,7 +13,7 @@
             app:layout_constraintBottom_toBottomOf="parent" android:id="@+id/quiz_input">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintTop_toTopOf="parent"
@@ -22,54 +22,69 @@
             <Button
                     android:text="@string/button_record"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/button"
+                    android:layout_height="wrap_content" android:id="@+id/record_question"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="@+id/textView4"/>
+                    app:layout_constraintBottom_toBottomOf="@+id/textView_textQuestion"
+            />
             <TextView
                     android:text="@string/question"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/textView"
-                    app:layout_constraintBottom_toTopOf="@+id/textView4"
-                    android:layout_marginBottom="56dp" app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"/>
-            <TextView
-                    android:text="TextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/textView4"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_height="wrap_content" android:id="@+id/textView_titleQuestion"
+                    app:layout_constraintBottom_toTopOf="@+id/textView_textQuestion"
+                    android:layout_marginBottom="32dp" app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" android:visibility="invisible"
+                    android:textSize="18sp" android:textStyle="bold" android:textColor="#000000"
             />
+            <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content" android:id="@+id/textView_textQuestion"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:visibility="invisible" android:textSize="16sp"
+                    android:hint="@string/answers_hint"
+                    app:layout_constraintStart_toEndOf="@+id/space4" app:layout_constraintEnd_toStartOf="@+id/space5"
+                    android:textAlignment="center"/>
+            <Space
+                    android:layout_width="32dp"
+                    android:layout_height="0dp" app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
+                    android:id="@+id/space4"/>
+            <Space
+                    android:layout_width="32dp"
+                    android:layout_height="0dp" app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintTop_toTopOf="parent"
+                    android:id="@+id/space5"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
         <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
-                android:id="@+id/input_answers">
+                android:id="@+id/input_answers" android:visibility="invisible">
 
             <TextView
                     android:text="@string/answer_textA"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" android:id="@+id/textView_titleA"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/space"/>
+                    app:layout_constraintStart_toStartOf="@+id/space2"
+                    app:layout_constraintEnd_toStartOf="@+id/space" android:textSize="18sp"
+                    android:textColor="#000000" android:textStyle="bold"/>
             <TextView
-                    android:text="TextView"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content" android:id="@+id/textView_textA"
                     app:layout_constraintTop_toBottomOf="@+id/textView_titleA"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/space" android:layout_marginTop="8dp"/>
+                    app:layout_constraintStart_toStartOf="@+id/space2"
+                    app:layout_constraintEnd_toStartOf="@+id/space" android:layout_marginTop="8dp"
+                    android:hint="@string/answers_hint" android:textSize="16sp" android:textAlignment="center"/>
             <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:layout_constraintTop_toBottomOf="@+id/textView_textA"
                     app:layout_constraintEnd_toStartOf="@+id/space"
-                    app:layout_constraintStart_toStartOf="parent" android:id="@+id/constraintLayout9"
+                    app:layout_constraintStart_toStartOf="@+id/space2" android:id="@+id/constraintLayout9"
                     android:layout_marginTop="16dp"
-                    app:layout_constraintBottom_toTopOf="@+id/space2">
+                    app:layout_constraintBottom_toTopOf="@+id/space2" app:layout_constraintStart_toEndOf="@+id/space6">
 
                 <Button
                         android:text="@string/button_record"
@@ -91,23 +106,26 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" android:id="@+id/textView_titleB"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/space"/>
+                    app:layout_constraintEnd_toEndOf="@+id/space3"
+                    app:layout_constraintStart_toEndOf="@+id/space" android:textStyle="bold" android:textSize="18sp"
+                    android:textColor="#000000"/>
             <TextView
-                    android:text="TextView"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content" android:id="@+id/textView_textB"
                     android:layout_marginTop="8dp"
                     app:layout_constraintTop_toBottomOf="@+id/textView_titleB"
                     app:layout_constraintStart_toEndOf="@+id/space"
-                    app:layout_constraintEnd_toEndOf="parent"/>
+                    app:layout_constraintEnd_toEndOf="@+id/space3" android:hint="@string/answers_hint"
+                    android:textSize="16sp" android:textAlignment="center"/>
             <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/constraintLayout10"
                     android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@+id/textView_textB" app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/space" app:layout_constraintBottom_toTopOf="@+id/space3">
+                    app:layout_constraintTop_toBottomOf="@+id/textView_textB"
+                    app:layout_constraintEnd_toEndOf="@+id/space3"
+                    app:layout_constraintStart_toEndOf="@+id/space" app:layout_constraintBottom_toTopOf="@+id/space3"
+                    app:layout_constraintEnd_toStartOf="@+id/space7">
 
                 <Button
                         android:text="@string/button_record"
@@ -129,16 +147,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" android:id="@+id/textView_titleC"
                     app:layout_constraintEnd_toStartOf="@+id/space"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/space2"/>
+                    app:layout_constraintStart_toStartOf="@+id/space2"
+                    app:layout_constraintTop_toBottomOf="@+id/space2" android:textSize="18sp"
+                    android:textColor="#000000" android:textStyle="bold"/>
             <TextView
-                    android:text="TextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="19dp" android:id="@+id/textView_textC"
-                    app:layout_constraintStart_toStartOf="parent"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content" android:id="@+id/textView_textC"
+                    app:layout_constraintStart_toStartOf="@+id/space2"
                     android:layout_marginTop="8dp"
                     app:layout_constraintTop_toBottomOf="@+id/textView_titleC"
-                    app:layout_constraintEnd_toStartOf="@+id/space"/>
+                    app:layout_constraintEnd_toStartOf="@+id/space" android:hint="@string/answers_hint"
+                    android:textSize="16sp"
+                    android:textAlignment="center"/>
             <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -146,7 +166,8 @@
                     android:layout_marginTop="16dp"
                     app:layout_constraintTop_toBottomOf="@+id/textView_textC"
                     app:layout_constraintEnd_toStartOf="@+id/space"
-                    app:layout_constraintStart_toStartOf="parent" app:layout_constraintBottom_toBottomOf="parent">
+                    app:layout_constraintStart_toStartOf="@+id/space2" app:layout_constraintBottom_toBottomOf="parent"
+            >
 
                 <Button
                         android:text="@string/button_record"
@@ -168,23 +189,26 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" android:id="@+id/textView_titleD"
                     app:layout_constraintStart_toEndOf="@+id/space"
-                    app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toBottomOf="@+id/space3"/>
+                    app:layout_constraintEnd_toEndOf="@+id/space3" app:layout_constraintTop_toBottomOf="@+id/space3"
+                    android:textColor="#000000" android:textSize="18sp" android:textStyle="bold"/>
             <TextView
-                    android:text="TextView"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content" android:id="@+id/textView_textD"
                     android:layout_marginTop="8dp"
                     app:layout_constraintTop_toBottomOf="@+id/textView_titleD"
                     app:layout_constraintStart_toEndOf="@+id/space"
-                    app:layout_constraintEnd_toEndOf="parent"/>
+                    app:layout_constraintEnd_toEndOf="@+id/space3" android:hint="@string/answers_hint"
+                    android:textSize="16sp" app:layout_constraintEnd_toStartOf="@+id/space7"
+                    android:textAlignment="center"/>
             <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/constraintLayout12"
                     android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@+id/textView_textD" app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView_textD"
+                    app:layout_constraintEnd_toEndOf="@+id/space3"
                     app:layout_constraintStart_toEndOf="@+id/space"
-                    app:layout_constraintBottom_toBottomOf="parent">
+                    app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toStartOf="@+id/space7">
 
                 <Button
                         android:text="@string/button_record"
@@ -211,34 +235,45 @@
                     android:layout_width="0dp"
                     android:layout_height="32dp"
                     app:layout_constraintEnd_toStartOf="@+id/space"
-                    app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" android:id="@+id/space2"/>
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" android:id="@+id/space2"
+                    app:layout_constraintStart_toEndOf="@+id/space6"/>
             <Space
                     android:layout_width="0dp"
                     android:layout_height="32dp"
-                    app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toEndOf="@+id/space"
+                    app:layout_constraintStart_toEndOf="@+id/space"
                     app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintTop_toTopOf="parent"
-                    android:id="@+id/space3"/>
+                    android:id="@+id/space3" app:layout_constraintEnd_toStartOf="@+id/space7"/>
+            <Space
+                    android:layout_width="32dp"
+                    android:layout_height="0dp" app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"
+                    android:id="@+id/space6"/>
+            <Space
+                    android:layout_width="32dp"
+                    android:layout_height="0dp" app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintTop_toTopOf="parent"
+                    android:id="@+id/space7"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
         <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintStart_toStartOf="parent" app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" android:layout_marginBottom="56dp"
-                android:id="@+id/constraintLayout8">
+                android:id="@+id/input_question_btns" android:visibility="invisible">
 
             <Button
                     android:text="@string/button_repeat"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/button2"
-                    app:layout_constraintEnd_toStartOf="@+id/button3"
+                    android:layout_height="wrap_content" android:id="@+id/record_question2"
+                    app:layout_constraintEnd_toStartOf="@+id/button_continue2"
                     app:layout_constraintStart_toStartOf="parent" app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     android:layout_marginEnd="56dp"/>
             <Button
                     android:text="@string/button_continue"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/button3"
+                    android:layout_height="wrap_content" android:id="@+id/button_continue2"
                     app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -246,19 +281,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="56dp">
+                app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="56dp"
+                android:id="@+id/input_answers_btns" android:visibility="invisible">
 
             <Button
                     android:text="@string/button_back"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/button10"
+                    android:layout_height="wrap_content" android:id="@+id/button_back"
                     app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toStartOf="@+id/button11"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/button_start"
                     android:layout_marginEnd="56dp"/>
             <Button
                     android:text="@string/button_start"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/button11"
+                    android:layout_height="wrap_content" android:id="@+id/button_start"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"
             />
@@ -268,7 +305,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" android:id="@+id/constraintLayout6"
             app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+            android:visibility="invisible">
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

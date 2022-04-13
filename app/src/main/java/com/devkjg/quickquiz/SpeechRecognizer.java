@@ -22,7 +22,7 @@ public class SpeechRecognizer {
 
     String logTag = "SPEECH_RECOGNITION";
     Context context;
-    OnRecognizeAction onRecognizeAction;
+    OnRecognizeAction onRecogAction;
     android.speech.SpeechRecognizer recognizer;
     Intent speechRecognizerIntent;
     static final int recordAudioRequestCode = 683541;
@@ -31,7 +31,13 @@ public class SpeechRecognizer {
     SpeechRecognizer(Context context, OnRecognizeAction onRecognizeAction) {
 
         this.context = context;
-        this.onRecognizeAction = onRecognizeAction;
+        if(onRecognizeAction != null)
+            onRecogAction = onRecognizeAction;
+        else
+            onRecogAction = new OnRecognizeAction() {
+                @Override
+                public void run() {}
+            };
 
         if(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions((Activity) context,new String[]{Manifest.permission.RECORD_AUDIO}, recordAudioRequestCode);
@@ -94,8 +100,8 @@ public class SpeechRecognizer {
             public void onResults(Bundle results) {
                 ArrayList<String> data = results.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
                 Log.i(logTag, "Ergebnis: " + data.get(0));
-                onRecognizeAction.setRecognitionResult(data.get(0));
-                onRecognizeAction.run();
+                onRecogAction.setRecognitionResult(data.get(0));
+                onRecogAction.run();
             }
 
             @Override
@@ -112,6 +118,7 @@ public class SpeechRecognizer {
     }
 
     public void startListening() {
+        assert onRecogAction != null;
         recognizer.startListening(speechRecognizerIntent);
         Log.i(logTag, "Spracherkennung wird gestartet");
     }
@@ -122,7 +129,7 @@ public class SpeechRecognizer {
     }
 
     public void setOnRecognizeAction(OnRecognizeAction onRecognizeAction) {
-        this.onRecognizeAction = onRecognizeAction;
+        onRecogAction = onRecognizeAction;
     }
 
 }

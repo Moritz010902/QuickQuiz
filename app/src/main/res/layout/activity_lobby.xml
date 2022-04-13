@@ -79,7 +79,7 @@
             app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="48dp"
             android:id="@+id/lobby_players"
             app:layout_constraintTop_toBottomOf="@+id/constraintLayout5" android:layout_marginTop="56dp"
-            app:layout_constraintBottom_toTopOf="@+id/button_start" android:layout_marginBottom="50dp">
+            app:layout_constraintBottom_toTopOf="@+id/button_startQuiz" android:layout_marginBottom="50dp">
 
         <ScrollView
                 android:layout_width="wrap_content"
@@ -98,7 +98,7 @@
     <Button
             android:text="@string/button_start"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/button_start"
+            android:layout_height="wrap_content" android:id="@+id/button_startQuiz"
             app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" android:layout_marginBottom="50dp"
             android:onClick="startQuiz"/>

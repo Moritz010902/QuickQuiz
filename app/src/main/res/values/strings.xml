@@ -21,6 +21,8 @@
     <string name="answer_textC">Antwort C</string>
     <string name="answer_textD">Antwort D</string>
 
+    <string name="answers_hint">kein Eintrag</string>
+
     <string name="lobby_host">Lobbyleiter</string>
     <string name="lobby_playerAmount">Spieler</string>
     <string name="lobby_yourName">Gib deinen Namen ein.</string>
