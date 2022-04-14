@@ -6,11 +6,13 @@
     <string name="button_continue">Weiter</string>
     <string name="button_start">Starten</string>
     <string name="button_record">Aufnehmen</string>
+    <string name="button_record_question">Frage aufnehmen</string>
     <string name="button_repeat">Wiederholen</string>
     <string name="button_back">Zurück</string>
 
     <string name="question">Quiz-Frage</string>
     <string name="question_next">Nächste Frage</string>
+    <string name="quiz_terminate_voting">Abstimmung beenden</string>
     <string name="quiz_terminate">Quiz beenden</string>
 
     <string name="answer_a">A</string>

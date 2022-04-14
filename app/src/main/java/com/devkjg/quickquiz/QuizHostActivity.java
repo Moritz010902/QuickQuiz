@@ -1,9 +1,11 @@
 package com.devkjg.quickquiz;
 
+import android.graphics.Rect;
+import android.os.Handler;
+import android.support.v4.app.INotificationSideChannel;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -28,10 +30,18 @@ public class QuizHostActivity extends AppCompatActivity {
     Button recordQuestion2;
     Button buttonContinue;
 
-    TextView textViewA;
-    TextView textViewB;
-    TextView textViewC;
-    TextView textViewD;
+    TextView textViewTitleA;
+    TextView textViewTitleB;
+    TextView textViewTitleC;
+    TextView textViewTitleD;
+    ImageView isRightAnswerA;
+    ImageView isRightAnswerB;
+    ImageView isRightAnswerC;
+    ImageView isRightAnswerD;
+    EditText textViewA;
+    EditText textViewB;
+    EditText textViewC;
+    EditText textViewD;
     Button recordA;
     Button recordB;
     Button recordC;
@@ -42,6 +52,18 @@ public class QuizHostActivity extends AppCompatActivity {
     ImageView deleteD;
     Button buttonBack;
     Button buttonStart;
+
+    ConstraintLayout controlVoting;
+
+    TextView showQuestion;
+    TextView showCountdown;
+    ProgressBar progressBarCountdown;
+    Button finishCountdown;
+    ImageView pauseCountdown;
+
+    Handler countdownHandler;
+    final Thread[] countdownThread = {null};
+    final int[] pStatus = {30};
 
     Connection.Host host;
 
@@ -131,6 +153,72 @@ public class QuizHostActivity extends AppCompatActivity {
                 inputAnswersButtons.setVisibility(View.VISIBLE);
             }
         });
+
+        textViewTitleA = findViewById(R.id.textView_titleA);
+        textViewTitleA.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (v.getTag().equals(0)) {
+                    isRightAnswerA.setImageResource(R.drawable.ic_right_answer);
+                    isRightAnswerA.setTag(1);
+                    v.setTag(1);
+                } else {
+                    isRightAnswerA.setImageResource(R.drawable.ic_right_answer_inactive);
+                    isRightAnswerA.setTag(0);
+                    v.setTag(0);
+                }
+            }
+        });
+        textViewTitleB = findViewById(R.id.textView_titleB);
+        textViewTitleB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (v.getTag().equals(0)) {
+                    isRightAnswerB.setImageResource(R.drawable.ic_right_answer);
+                    isRightAnswerB.setTag(1);
+                    v.setTag(1);
+                } else {
+                    isRightAnswerB.setImageResource(R.drawable.ic_right_answer_inactive);
+                    isRightAnswerB.setTag(0);
+                    v.setTag(0);
+                }
+            }
+        });
+        textViewTitleC = findViewById(R.id.textView_titleC);
+        textViewTitleC.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (v.getTag().equals(0)) {
+                    isRightAnswerC.setImageResource(R.drawable.ic_right_answer);
+                    isRightAnswerC.setTag(1);
+                    v.setTag(1);
+                } else {
+                    isRightAnswerC.setImageResource(R.drawable.ic_right_answer_inactive);
+                    isRightAnswerC.setTag(0);
+                    v.setTag(0);
+                }
+            }
+        });
+        textViewTitleD = findViewById(R.id.textView_titleD);
+        textViewTitleD.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (v.getTag().equals(0)) {
+                    isRightAnswerD.setImageResource(R.drawable.ic_right_answer);
+                    isRightAnswerD.setTag(1);
+                    v.setTag(1);
+                } else {
+                    isRightAnswerD.setImageResource(R.drawable.ic_right_answer_inactive);
+                    isRightAnswerD.setTag(0);
+                    v.setTag(0);
+                }
+            }
+        });
+
+        isRightAnswerA = findViewById(R.id.isAnswerRight_A);
+        isRightAnswerB = findViewById(R.id.isAnswerRight_B);
+        isRightAnswerC = findViewById(R.id.isAnswerRight_C);
+        isRightAnswerD = findViewById(R.id.isAnswerRight_D);
 
         textViewA = findViewById(R.id.textView_textA);
         textViewB = findViewById(R.id.textView_textB);
@@ -290,6 +378,68 @@ public class QuizHostActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //TODO: show question and answers and start timer
+                quizInput.setVisibility(View.INVISIBLE);
+                controlVoting.setVisibility(View.VISIBLE);
+
+                pStatus[0] = 30;
+                progressBarCountdown.setMax(pStatus[0]);
+                progressBarCountdown.setProgress(pStatus[0]);
+                countdownThread[0].start();
+
+            }
+        });
+
+
+        controlVoting = findViewById(R.id.controlVoting);
+        showQuestion = findViewById(R.id.textView_textQuestion2);
+        showCountdown = findViewById(R.id.show_countdown);
+        progressBarCountdown = findViewById(R.id.progressBar_countdown);
+        finishCountdown = findViewById(R.id.button_finishCountdown);
+        pauseCountdown = findViewById(R.id.imageView_pauseCountdown);
+
+        countdownHandler = new Handler();
+        countdownThread[0] = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (pStatus[0] >= 0) {
+                    countdownHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressBarCountdown.setProgress(pStatus[0], true);
+                            showCountdown.setText(pStatus[0] + "s");
+                        }
+                    });
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    pStatus[0]--;
+                }
+            }
+        });
+
+        showCountdown.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pauseCountdown.setVisibility(View.VISIBLE);
+                showCountdown.setVisibility(View.INVISIBLE);
+                //TODO: fix thread problem
+                synchronized (countdownThread[0]) {
+                    try {
+                        countdownThread[0].wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        pauseCountdown.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pauseCountdown.setVisibility(View.INVISIBLE);
+                showCountdown.setVisibility(View.VISIBLE);
+                countdownThread.notifyAll();
             }
         });
 
