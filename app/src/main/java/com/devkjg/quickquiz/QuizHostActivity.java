@@ -1,16 +1,10 @@
 package com.devkjg.quickquiz;
 
-import android.graphics.Rect;
-import android.os.Handler;
-import android.support.v4.app.INotificationSideChannel;
-import android.util.Log;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.constraintlayout.widget.ConstraintLayout;
-
-import java.io.InvalidObjectException;
 
 
 public class QuizHostActivity extends AppCompatActivity {
@@ -61,9 +55,14 @@ public class QuizHostActivity extends AppCompatActivity {
     Button finishCountdown;
     ImageView pauseCountdown;
 
-    Handler countdownHandler;
-    final Thread[] countdownThread = {null};
-    final int[] pStatus = {30};
+    boolean pauseCountDown = false;
+    int pStatus = 30;
+
+    private String quizQuestion = "";
+    private String quizAnswerA = "";
+    private String quizAnswerB = "";
+    private String quizAnswerC = "";
+    private String quizAnswerD = "";
 
     Connection.Host host;
 
@@ -84,37 +83,43 @@ public class QuizHostActivity extends AppCompatActivity {
         textViewTextQuestion = findViewById(R.id.textView_textQuestion);
 
         recordQuestion = findViewById(R.id.record_question);
-        recordQuestion.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(!isRecording) {
-                    speechRecognizer.setOnRecognizeAction(new OnRecognizeAction() {
-                        @Override
-                        public void run() {
-                            textViewTextQuestion.setText(getRecognitionResult());
+        recordQuestion.setOnClickListener(v -> {
+            //TODO: remove test code
+            textViewTextQuestion.setText("test input");
+            recordQuestion.setVisibility(View.INVISIBLE);
+            textViewTitleQuestion.setVisibility(View.VISIBLE);
+            textViewTextQuestion.setVisibility(View.VISIBLE);
+            inputQuestionButtons.setVisibility(View.VISIBLE);
+            //TODO: out comment code for full functionality
+            /*
+            if(!isRecording) {
+                speechRecognizer.setOnRecognizeAction(new OnRecognizeAction() {
+                    @Override
+                    public void run() {
+                        textViewTextQuestion.setText(getRecognitionResult());
 
-                            recordQuestion.setVisibility(View.INVISIBLE);
-                            textViewTitleQuestion.setVisibility(View.VISIBLE);
-                            textViewTextQuestion.setVisibility(View.VISIBLE);
-                            inputQuestionButtons.setVisibility(View.VISIBLE);
+                        recordQuestion.setVisibility(View.INVISIBLE);
+                        textViewTitleQuestion.setVisibility(View.VISIBLE);
+                        textViewTextQuestion.setVisibility(View.VISIBLE);
+                        inputQuestionButtons.setVisibility(View.VISIBLE);
 
-                            speechRecognizer.stopListening();
-                            recordQuestion.setBackgroundColor(getResources().getColor(R.color.purple_500, null));
-                            recordQuestion.setTag(0);
-                            isRecording = false;
-                        }
-                    });
-                    speechRecognizer.startListening();
-                    recordQuestion.setBackgroundColor(getResources().getColor(R.color.green, null));
-                    recordQuestion.setTag(1);
-                    isRecording = true;
-                } else if(recordQuestion.getTag().equals(1)) {
-                    speechRecognizer.stopListening();
-                    recordQuestion.setBackgroundColor(getResources().getColor(R.color.purple_500, null));
-                    recordQuestion.setTag(0);
-                    isRecording = false;
-                }
+                        speechRecognizer.stopListening();
+                        recordQuestion.setBackgroundColor(getResources().getColor(R.color.purple_500, null));
+                        recordQuestion.setTag(0);
+                        isRecording = false;
+                    }
+                });
+                speechRecognizer.startListening();
+                recordQuestion.setBackgroundColor(getResources().getColor(R.color.green, null));
+                recordQuestion.setTag(1);
+                isRecording = true;
+            } else if(recordQuestion.getTag().equals(1)) {
+                speechRecognizer.stopListening();
+                recordQuestion.setBackgroundColor(getResources().getColor(R.color.purple_500, null));
+                recordQuestion.setTag(0);
+                isRecording = false;
             }
+             */
         });
         recordQuestion2 = findViewById(R.id.record_question2);
         recordQuestion2.setOnClickListener(new View.OnClickListener() {
@@ -147,6 +152,7 @@ public class QuizHostActivity extends AppCompatActivity {
         buttonContinue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                quizQuestion = textViewTextQuestion.getEditableText().toString();
                 inputQuestion.setVisibility(View.INVISIBLE);
                 inputQuestionButtons.setVisibility(View.INVISIBLE);
                 inputAnswers.setVisibility(View.VISIBLE);
@@ -373,6 +379,9 @@ public class QuizHostActivity extends AppCompatActivity {
                 inputQuestionButtons.setVisibility(View.VISIBLE);
             }
         });
+
+        final Thread[] countdownThread = {getCountDownThread()};
+
         buttonStart = findViewById(R.id.button_start);
         buttonStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -380,10 +389,11 @@ public class QuizHostActivity extends AppCompatActivity {
                 //TODO: show question and answers and start timer
                 quizInput.setVisibility(View.INVISIBLE);
                 controlVoting.setVisibility(View.VISIBLE);
+                showQuestion.setText(quizQuestion);
 
-                pStatus[0] = 30;
-                progressBarCountdown.setMax(pStatus[0]);
-                progressBarCountdown.setProgress(pStatus[0]);
+                pStatus = 30;
+                progressBarCountdown.setMax(pStatus);
+                progressBarCountdown.setProgress(pStatus);
                 countdownThread[0].start();
 
             }
@@ -397,41 +407,14 @@ public class QuizHostActivity extends AppCompatActivity {
         finishCountdown = findViewById(R.id.button_finishCountdown);
         pauseCountdown = findViewById(R.id.imageView_pauseCountdown);
 
-        countdownHandler = new Handler();
-        countdownThread[0] = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (pStatus[0] >= 0) {
-                    countdownHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            progressBarCountdown.setProgress(pStatus[0], true);
-                            showCountdown.setText(pStatus[0] + "s");
-                        }
-                    });
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    pStatus[0]--;
-                }
-            }
-        });
-
         showCountdown.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 pauseCountdown.setVisibility(View.VISIBLE);
                 showCountdown.setVisibility(View.INVISIBLE);
-                //TODO: fix thread problem
-                synchronized (countdownThread[0]) {
-                    try {
-                        countdownThread[0].wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
+
+                pauseCountDown = true;
+                countdownThread[0].interrupt();
             }
         });
         pauseCountdown.setOnClickListener(new View.OnClickListener() {
@@ -439,15 +422,47 @@ public class QuizHostActivity extends AppCompatActivity {
             public void onClick(View v) {
                 pauseCountdown.setVisibility(View.INVISIBLE);
                 showCountdown.setVisibility(View.VISIBLE);
-                countdownThread.notifyAll();
+
+                pauseCountDown = false;
+                countdownThread[0] = getCountDownThread();
+                countdownThread[0].start();
+            }
+        });
+        finishCountdown.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pauseCountDown = true;
+                countdownThread[0].interrupt();
+                //TODO: broadcast event to players
+                runOnUiThread(() -> setContentView(R.layout.quiz_current_ranking));
             }
         });
 
 
         //TODO: remove test code
-        host = new Connection.Host(this);
+        //host = new Connection.Host(this);
         //host.enableConnection(30000);
 
+    }
+
+    private Thread getCountDownThread() {
+        return new Thread(() -> {
+            while (pStatus >= 0 && !pauseCountDown) {
+                runOnUiThread(() -> {
+                    progressBarCountdown.setProgress(pStatus, true);
+                    showCountdown.setText(pStatus + "s");
+                });
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                pStatus--;
+            }
+            //TODO: broadcast event to players
+            if(!pauseCountDown)
+                runOnUiThread(() -> setContentView(R.layout.quiz_current_ranking));
+        });
     }
 
     private void showQuestion() {

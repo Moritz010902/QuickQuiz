@@ -1,23 +1,23 @@
 package com.devkjg.quickquiz;
 
 import android.content.Intent;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import com.devkjg.quickquiz.connection.Role;
+import com.devkjg.quickquiz.connection.TestConnection;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
     SpeechRecognizer speechRecognizer;
     Thread connectionThread;
+    static TestConnection connection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +33,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        connection = new TestConnection(getApplicationContext());
+
         //TODO: remove test code
-        Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
-        //startActivity(intent);
+        Intent intent = new Intent(getApplicationContext(), QuizActivity.class);
+        startActivity(intent);
 
 
 
@@ -73,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
                     Runnable run = new Runnable() {
                         @Override
                         public void run() {
-                            TestConnection c = new TestConnection(getApplicationContext());
-                            c.broadcastGameInvitation(1234,3000);
+                            //connection.setRole(ConnectionRole.SERVER);
+                            connection.broadcastGameInvitation(1234,3000);
                         }
                     };
                     connectionThread = new Thread(run);
@@ -96,8 +98,8 @@ public class MainActivity extends AppCompatActivity {
                     Runnable run = new Runnable() {
                         @Override
                         public void run() {
-                            TestConnection c = new TestConnection(getApplicationContext());
-                            c.listenForGameInvitation(1234);
+                            connection.setRole(Role.CLIENT);
+                            connection.listenForGameInvitation(1234);
                         }
                     };
                     connectionThread = new Thread(run);

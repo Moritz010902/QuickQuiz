@@ -8,6 +8,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.gridlayout.widget.GridLayout;
+import com.devkjg.quickquiz.connection.Issue;
+import com.devkjg.quickquiz.connection.Message;
+import com.devkjg.quickquiz.connection.RunOnComplete;
 
 
 public class QuizActivity extends AppCompatActivity {
@@ -37,6 +40,8 @@ public class QuizActivity extends AppCompatActivity {
         answerC = findViewById(R.id.answerC);
         answerD = findViewById(R.id.answerD);
 
+        //TODO: hide some fields if necessary
+
         answerA.setOnClickListener(view -> {
             answerA.animate().start();
             initiateWaitingRoom(1);
@@ -55,13 +60,30 @@ public class QuizActivity extends AppCompatActivity {
         });
 
         //TODO: remove test code
+        /*
         Log.i("CONNECTION", "continue as player");
         client = new Connection.Client(this);
         client.connectToHost(20000);
+         */
 
     }
 
     private void initiateWaitingRoom(int answer) {
+
+        assert connectedToQuiz;
+        //TODO: send answer to host device
+        final int[] sendCounter = {0};
+        MainActivity.connection.sendToHost(Issue.ANSWER, String.valueOf(answer), new RunOnComplete() {
+            @Override
+            public void run() {
+                assert Message.isValid(getResult());
+                if(Message.isIssue(getResult(), Issue.ANSWER_ACCEPTED) != Boolean.TRUE) {
+                    if(sendCounter[0] < 3)
+                        MainActivity.connection.sendToHost(Issue.ANSWER, String.valueOf(answer), this);
+                    sendCounter[0]++;
+                }
+            }
+        });
 
         setContentView(R.layout.quiz_waitingroom);
         ConstraintLayout layout = findViewById(R.id.waitingRoom);
@@ -116,6 +138,14 @@ public class QuizActivity extends AppCompatActivity {
             }
         });
 */
+    }
+
+    public void showCurrentRanking() {
+        setContentView(R.layout.quiz_current_ranking);
+    }
+
+    public void nextQuestion() {
+        setContentView(R.layout.activity_quiz);
     }
 
     @Override

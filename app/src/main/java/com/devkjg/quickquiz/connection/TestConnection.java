@@ -1,17 +1,15 @@
-package com.devkjg.quickquiz;
+package com.devkjg.quickquiz.connection;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.StrictMode;
 import android.util.Log;
-import androidx.appcompat.app.AppCompatActivity;
+import com.devkjg.quickquiz.LobbyActivity;
 
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.regex.Pattern;
 
 
 /*
@@ -21,6 +19,7 @@ https://www.programmerall.com/article/58251638107/
 public class TestConnection {
 
     private Context context;
+    private Integer role;
     private InetAddress connectedAddress = null;
     private Integer connectedPort = null;
     private Client connectedClient = null;
@@ -30,21 +29,54 @@ public class TestConnection {
     protected final int port = 4346;
 
 
-    TestConnection(Context context) {
+    public TestConnection(Context context) {
         this.context = context;
     }
 
+    public void setRole(int role) {
+        this.role = role;
+    }
+
+    private void checkRole(int requiredRole) {
+        try {
+            if(role == null)
+                throw new UndefinedConnectionRoleException();
+            if(role != requiredRole)
+                throw new WrongConnectionRoleException();
+        } catch (WrongConnectionRoleException | UndefinedConnectionRoleException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void broadcastGameInvitation(int gameId, long frequency) {
+        checkRole(Role.SERVER);
         server = new Server();
         new MulticastServer(String.valueOf(gameId), frequency);
     }
 
     public void listenForGameInvitation(int gameId) {
+        checkRole(Role.CLIENT);
         new MulticastClient(String.valueOf(gameId));
     }
 
     private void connectTo(int gameId, InetAddress address, int port) {
+        checkRole(Role.CLIENT);
         connectedClient = new Client(gameId, address, port);
+    }
+
+    private void checkIsConnected() {
+        try {
+            if(connectedClient == null)
+                throw new NoConnectionException();
+        } catch (NoConnectionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendToHost(String issue, String message, RunOnComplete runOnComplete) {
+        checkRole(Role.CLIENT);
+        checkIsConnected();
+        connectedClient.sendMessage(new Message(issue, message), runOnComplete);
     }
 
 
@@ -85,34 +117,31 @@ public class TestConnection {
 
         public void sendMessage(Message message, RunOnComplete onComplete) {
 
-            Runnable run = new Runnable() {
-                @Override
-                public void run() {
-                    try {
+            Runnable run = () -> {
+                try {
 
-                        String text = message.getText();
-                        byte[] buf = text.getBytes();
-                        DatagramPacket packet = new DatagramPacket(buf, buf.length, hostAddress, hostPort);
-                        socket.send(packet);
-                        Log.i(logTag, "send: " + message.getText());
+                    String text = message.getText();
+                    byte[] buf = text.getBytes();
+                    DatagramPacket packet = new DatagramPacket(buf, buf.length, hostAddress, hostPort);
+                    socket.send(packet);
+                    Log.i(logTag, "send: " + message.getText());
 
-                        // get response
-                        packet = new DatagramPacket(buf, buf.length);
-                        socket.receive(packet);
+                    // get response
+                    packet = new DatagramPacket(buf, buf.length);
+                    socket.receive(packet);
 
-                        // display response
-                        String received = new String(packet.getData(), 0, packet.getLength());
-                        Log.i(logTag, "received: " + received);
+                    // display response
+                    String received = new String(packet.getData(), 0, packet.getLength());
+                    Log.i(logTag, "received: " + received);
 
-                        socket.close();
-                        if(onComplete != null) {
-                            onComplete.setResult(received);
-                            onComplete.run();
-                        }
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    socket.close();
+                    if(onComplete != null) {
+                        onComplete.setResult(received);
+                        onComplete.run();
                     }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             };
             new Thread(run).start();
@@ -378,68 +407,22 @@ public class TestConnection {
         }
     }
 
-
-    private static class Message {
-
-        private static String finalMessage;
-
-        Message(String issue, String message) {
-            finalMessage = issue.hashCode() + ":" + message;
+    private class UndefinedConnectionRoleException extends Exception {
+        public UndefinedConnectionRoleException() {
+            super("Please define your connections role first");
         }
-
-        String getText() {
-            return finalMessage;
-        }
-
-        static String getContent(String message) {
-            String[] content = message.split(Pattern.quote(":"));
-            if(content.length != 2)
-                return null;
-            return content[1];
-        }
-
-        static Boolean isIssue(String message, String issue) {
-            String[] content = message.split(Pattern.quote(":"));
-            if(content.length != 2)
-                return null;
-            return Integer.parseInt(content[0]) == issue.hashCode();
-        }
-
-        Boolean isIssue(String issue) {
-            String[] content = finalMessage.split(Pattern.quote(":"));
-            if(content.length != 2)
-                return null;
-            return Integer.parseInt(content[0]) == issue.hashCode();
-        }
-
-        static boolean isValid(String message) {
-            return (message.split(Pattern.quote(":"))).length == 2;
-        }
-
     }
 
-    private abstract static class Issue {
-
-        static final String BROADCAST = "broadcast";
-        static final String CONNECTION_REQUEST = "connection_request";
-        static final String CONNECTION_CONFIRM = "connection_confirm";
-        static final String PROCESS = "process";
-        static final String ANSWER = "answer";
-
+    private class WrongConnectionRoleException extends Exception {
+        public WrongConnectionRoleException() {
+            super("Your connection object is not permitted to call this method because it has the wrong role");
+        }
     }
 
-    private abstract class RunOnComplete implements Runnable {
-
-        String result = "";
-
-        String getResult() {
-            return result;
+    private class NoConnectionException extends Exception {
+        public NoConnectionException() {
+            super("No existing connection between your and any other devices");
         }
-
-        void setResult(String result) {
-            this.result = result;
-        }
-
     }
 
 }

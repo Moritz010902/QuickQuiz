@@ -22,7 +22,7 @@ public class SpeechRecognizer {
 
     String logTag = "SPEECH_RECOGNITION";
     Context context;
-    OnRecognizeAction onRecogAction;
+    OnRecognizeAction onRecAction;
     android.speech.SpeechRecognizer recognizer;
     Intent speechRecognizerIntent;
     static final int recordAudioRequestCode = 683541;
@@ -32,9 +32,9 @@ public class SpeechRecognizer {
 
         this.context = context;
         if(onRecognizeAction != null)
-            onRecogAction = onRecognizeAction;
+            onRecAction = onRecognizeAction;
         else
-            onRecogAction = new OnRecognizeAction() {
+            onRecAction = new OnRecognizeAction() {
                 @Override
                 public void run() {}
             };
@@ -100,8 +100,8 @@ public class SpeechRecognizer {
             public void onResults(Bundle results) {
                 ArrayList<String> data = results.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
                 Log.i(logTag, "Ergebnis: " + data.get(0));
-                onRecogAction.setRecognitionResult(data.get(0));
-                onRecogAction.run();
+                onRecAction.setRecognitionResult(data.get(0));
+                onRecAction.run();
             }
 
             @Override
@@ -118,7 +118,7 @@ public class SpeechRecognizer {
     }
 
     public void startListening() {
-        assert onRecogAction != null;
+        assert onRecAction != null;
         recognizer.startListening(speechRecognizerIntent);
         Log.i(logTag, "Spracherkennung wird gestartet");
     }
@@ -129,7 +129,7 @@ public class SpeechRecognizer {
     }
 
     public void setOnRecognizeAction(OnRecognizeAction onRecognizeAction) {
-        onRecogAction = onRecognizeAction;
+        onRecAction = onRecognizeAction;
     }
 
 }
