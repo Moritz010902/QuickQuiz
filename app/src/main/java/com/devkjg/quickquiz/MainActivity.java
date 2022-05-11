@@ -36,8 +36,10 @@ public class MainActivity extends AppCompatActivity {
         connection = new TestConnection(getApplicationContext());
 
         //TODO: remove test code
+        /*
         Intent intent = new Intent(getApplicationContext(), QuizActivity.class);
         startActivity(intent);
+         */
 
 
 
@@ -75,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                     Runnable run = new Runnable() {
                         @Override
                         public void run() {
-                            //connection.setRole(ConnectionRole.SERVER);
+                            connection.setRole(Role.SERVER);
                             connection.broadcastGameInvitation(1234,3000);
                         }
                     };
