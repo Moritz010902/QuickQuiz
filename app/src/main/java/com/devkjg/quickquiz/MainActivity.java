@@ -8,7 +8,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.devkjg.quickquiz.connection.Role;
-import com.devkjg.quickquiz.connection.TestConnection;
+import com.devkjg.quickquiz.connection.Connection;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
 
     SpeechRecognizer speechRecognizer;
     Thread connectionThread;
-    static TestConnection connection;
+    static Connection connection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        connection = new TestConnection(getApplicationContext());
+        connection = new Connection(getApplicationContext());
 
         //TODO: remove test code
         /*

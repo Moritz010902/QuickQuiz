@@ -64,7 +64,6 @@ public class QuizHostActivity extends AppCompatActivity {
     private String quizAnswerC = "";
     private String quizAnswerD = "";
 
-    Connection.Host host;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -437,11 +436,6 @@ public class QuizHostActivity extends AppCompatActivity {
                 runOnUiThread(() -> setContentView(R.layout.quiz_current_ranking));
             }
         });
-
-
-        //TODO: remove test code
-        //host = new Connection.Host(this);
-        //host.enableConnection(30000);
 
     }
 

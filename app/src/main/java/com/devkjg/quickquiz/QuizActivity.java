@@ -17,7 +17,6 @@ public class QuizActivity extends AppCompatActivity {
 
     private final String logTag = "QUIZ_ACTIVITY";
     private boolean connectedToQuiz;
-    Connection.Client client;
 
     GridLayout gridLayout;
     TextView answerA;
@@ -58,13 +57,6 @@ public class QuizActivity extends AppCompatActivity {
             answerD.animate().start();
             initiateWaitingRoom(4);
         });
-
-        //TODO: remove test code
-        /*
-        Log.i("CONNECTION", "continue as player");
-        client = new Connection.Client(this);
-        client.connectToHost(20000);
-         */
 
     }
 

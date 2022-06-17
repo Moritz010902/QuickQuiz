@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 https://developer.android.com/training/data-storage/app-specific#java
 https://www.programmerall.com/article/58251638107/
  */
-public class TestConnection {
+public class Connection {
 
     private Context context;
     private Integer role;
@@ -29,7 +29,7 @@ public class TestConnection {
     protected final int port = 4346;
 
 
-    public TestConnection(Context context) {
+    public Connection(Context context) {
         this.context = context;
     }
 
