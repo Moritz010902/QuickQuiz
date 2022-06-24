@@ -10,6 +10,7 @@ import com.devkjg.quickquiz.LobbyActivity;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 
 /*
@@ -20,10 +21,12 @@ public class Connection {
 
     private Context context;
     private Integer role;
+    private String gameId;
     private InetAddress connectedAddress = null;
     private Integer connectedPort = null;
     private Client connectedClient = null;
     private Server server = null;
+    private MulticastServer multicastServer = null;
     protected final String multicastAddress = "230.100.221.1";
     protected final int multicastPort = 4336;
     protected final int port = 4346;
@@ -48,15 +51,22 @@ public class Connection {
         }
     }
 
-    public void broadcastGameInvitation(int gameId, long frequency) {
+    public void broadcastGameInvitation(String gameId, long frequency) {
         checkRole(Role.SERVER);
+        this.gameId = gameId;
         server = new Server();
-        new MulticastServer(String.valueOf(gameId), frequency);
+        multicastServer = new MulticastServer(gameId, frequency);
     }
 
-    public void listenForGameInvitation(int gameId) {
+    public void stopBroadcastingGameInvitation() {
+        checkRole(Role.SERVER);
+        if(multicastServer != null)
+            multicastServer.stopBroadcasting();
+    }
+
+    public void listenForGameInvitation(String gameId, RunOnComplete runOnComplete) {
         checkRole(Role.CLIENT);
-        new MulticastClient(String.valueOf(gameId));
+        new MulticastClient(gameId, runOnComplete);
     }
 
     private void connectTo(int gameId, InetAddress address, int port) {
@@ -158,7 +168,7 @@ public class Connection {
         private WifiManager.MulticastLock multicastLock;
 
 
-        MulticastClient(String expectMessage) {
+        MulticastClient(String expectMessage, RunOnComplete runOnComplete) {
             try{
 
                 StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -192,6 +202,7 @@ public class Connection {
                         connectTo(Integer.parseInt(expectMessage), packet.getAddress(), port);
                         listen = false;
                         disable();
+                        runOnComplete.run();
                     }
                 }
 
@@ -246,14 +257,20 @@ public class Connection {
     private class MulticastServer {
 
         private final String logTag = "MULTICAST_SERVER";
+        private MulticastServerThread multicastServerThread;
 
         MulticastServer(String message, long timeout) {
             try {
-                new MulticastServerThread(message, timeout).start();
+                multicastServerThread = new MulticastServerThread(message, timeout);
+                multicastServerThread.start();
                 Log.i(logTag, "successfully started");
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        public void stopBroadcasting() {
+            multicastServerThread.stopBroadcasting();
         }
 
     }
@@ -333,9 +350,8 @@ public class Connection {
 
             try {
                 if (Message.isIssue(message, Issue.CONNECTION_REQUEST) == Boolean.TRUE) {
-                    //TODO: replace "1234" by variable gameId
-                    if (Message.getContent(message).equals("1234"))
-                        return new Message(Issue.CONNECTION_CONFIRM, "1234");
+                    if (Objects.equals(Message.getContent(message), gameId))
+                        return new Message(Issue.CONNECTION_CONFIRM, gameId);
                 }
             } catch (NullPointerException e) {
                 return null;
@@ -381,6 +397,7 @@ public class Connection {
                 socket.setBroadcast(true);
                 socket.joinGroup(group);
 
+                moreQuotes = true;
                 while (moreQuotes) {
 
                     // construct quote
@@ -405,6 +422,11 @@ public class Connection {
                 moreQuotes = false;
             }
         }
+
+        public void stopBroadcasting() {
+            moreQuotes = false;
+        }
+
     }
 
     private class UndefinedConnectionRoleException extends Exception {

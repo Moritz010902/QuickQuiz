@@ -16,6 +16,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import com.devkjg.quickquiz.connection.Role;
+import com.devkjg.quickquiz.connection.RunOnComplete;
 
 public class JoinActivity extends AppCompatActivity {
 
@@ -79,15 +81,30 @@ public class JoinActivity extends AppCompatActivity {
                     inputMethodManager.hideSoftInputFromWindow(field4.getWindowToken(), 0);
 
                 if(gameID.length() == 4) {
-                    int id = Integer.parseInt(gameID);
-                    //TODO: search for a game with given id
-                    boolean found = true;
-                    if(found) {
-                        Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
-                        startActivity(intent);
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Dieses Quiz existiert nicht.", Toast.LENGTH_SHORT).show();
-                    }
+
+                    RunOnComplete runOnComplete = new RunOnComplete() {
+                        @Override
+                        public void run() {
+                            Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
+                            intent.putExtra("gameId", gameID);
+                            startActivity(intent);
+                        }
+                    };
+
+                    //TODO: search for a game with given id (test solution)
+                    Runnable run = new Runnable() {
+                        @Override
+                        public void run() {
+                            MainActivity.connection.setRole(Role.CLIENT);
+                            MainActivity.connection.listenForGameInvitation(gameID, runOnComplete);
+                        }
+                    };
+                    //TODO: avoid multiple Threads running (interrupt did not work)
+                    if(MainActivity.connectionThread != null)
+                        MainActivity.connectionThread.interrupt();
+                    MainActivity.connectionThread = new Thread(run);
+                    MainActivity.connectionThread.start();
+
                 }
             }
 

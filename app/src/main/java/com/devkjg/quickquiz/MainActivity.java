@@ -16,7 +16,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     SpeechRecognizer speechRecognizer;
-    Thread connectionThread;
+    static Thread connectionThread;
     static Connection connection;
 
     @Override
@@ -70,15 +70,17 @@ public class MainActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(getApplicationContext(), LobbyActivity.class);
                 intent.putExtra("host", true);
+                intent.putExtra("gameId", gameId);
                 startActivity(intent);
 
                 if(!block[0]) {
                     Log.e("ROLE", "server");
+                    String finalGameId = gameId;
                     Runnable run = new Runnable() {
                         @Override
                         public void run() {
                             connection.setRole(Role.SERVER);
-                            connection.broadcastGameInvitation(1234,3000);
+                            connection.broadcastGameInvitation(finalGameId,3000);
                         }
                     };
                     connectionThread = new Thread(run);
@@ -91,23 +93,10 @@ public class MainActivity extends AppCompatActivity {
         btnPlayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Log.e("ROLE", "client");
                 Intent intent = new Intent(getApplicationContext(), JoinActivity.class);
                 startActivity(intent);
-
-                if(!block[0]) {
-                    Log.e("ROLE", "client");
-                    Runnable run = new Runnable() {
-                        @Override
-                        public void run() {
-                            connection.setRole(Role.CLIENT);
-                            connection.listenForGameInvitation(1234);
-                        }
-                    };
-                    connectionThread = new Thread(run);
-                    connectionThread.start();
-                    block[0] = true;
-                }
+                block[0] = true;
             }
         });
 

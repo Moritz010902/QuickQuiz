@@ -15,6 +15,7 @@ import java.util.ArrayList;
 public class LobbyActivity extends AppCompatActivity {
 
     boolean host;
+    String gameId;
     String myName;
     ArrayList<View> players = new ArrayList<>();
 
@@ -31,7 +32,9 @@ public class LobbyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.quiz_name);
 
-        host = getIntent().getBooleanExtra("host", false);
+        Intent intent = getIntent();
+        host = intent.getBooleanExtra("host", false);
+        gameId = intent.getStringExtra("gameId");
 
         enterName = findViewById(R.id.enterName);
         InputFilter[] inputFilter = new InputFilter[1];
@@ -59,6 +62,7 @@ public class LobbyActivity extends AppCompatActivity {
             gridLayout.setColumnCount(1);
             startQuiz = findViewById(R.id.button_startQuiz);
 
+            lobbyId.setText(gameId);
             if(host) {
                 hostName.setText(myName);
             } else {
@@ -82,6 +86,7 @@ public class LobbyActivity extends AppCompatActivity {
         Intent intent = new Intent(getApplicationContext(), QuizHostActivity.class);
         startActivity(intent);
 
+        MainActivity.connection.stopBroadcastingGameInvitation();
         //TODO: broadcast event to all players
     }
 
