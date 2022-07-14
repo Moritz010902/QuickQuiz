@@ -99,9 +99,15 @@ public class JoinActivity extends AppCompatActivity {
                             MainActivity.connection.listenForGameInvitation(gameID, runOnComplete);
                         }
                     };
-                    //TODO: avoid multiple Threads running (interrupt did not work)
-                    if(MainActivity.connectionThread != null)
-                        MainActivity.connectionThread.interrupt();
+                    //TODO: avoid multiple Threads running (interrupt did not work ... test current solution)
+                    if(MainActivity.connectionThread != null) {
+                        MainActivity.connection.stopListeningForGameInvitation();
+                        try {
+                            MainActivity.connectionThread.join();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                     MainActivity.connectionThread = new Thread(run);
                     MainActivity.connectionThread.start();
 

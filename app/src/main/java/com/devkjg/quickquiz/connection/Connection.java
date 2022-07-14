@@ -26,6 +26,7 @@ public class Connection {
     private Integer connectedPort = null;
     private Client connectedClient = null;
     private Server server = null;
+    private MulticastClient multicastClient = null;
     private MulticastServer multicastServer = null;
     protected final String multicastAddress = "230.100.221.1";
     protected final int multicastPort = 4336;
@@ -66,7 +67,12 @@ public class Connection {
 
     public void listenForGameInvitation(String gameId, RunOnComplete runOnComplete) {
         checkRole(Role.CLIENT);
-        new MulticastClient(gameId, runOnComplete);
+        multicastClient = new MulticastClient(gameId, runOnComplete);
+    }
+
+    public void stopListeningForGameInvitation() {
+        if(multicastClient != null)
+            multicastClient.disable();
     }
 
     private void connectTo(int gameId, InetAddress address, int port) {
@@ -166,6 +172,7 @@ public class Connection {
         private MulticastSocket socket;
         private InetAddress address;
         private WifiManager.MulticastLock multicastLock;
+        private boolean listen;
 
 
         MulticastClient(String expectMessage, RunOnComplete runOnComplete) {
@@ -188,7 +195,7 @@ public class Connection {
                 DatagramPacket packet;
                 byte[] buf = new byte[256];
                 //TODO: implement timeout
-                boolean listen = true;
+                listen = true;
                 while (listen) {
 
                     packet = new DatagramPacket(buf, buf.length);
@@ -200,7 +207,6 @@ public class Connection {
                         continue;
                     if(Message.getContent(received).equals(expectMessage)) {
                         connectTo(Integer.parseInt(expectMessage), packet.getAddress(), port);
-                        listen = false;
                         disable();
                         runOnComplete.run();
                     }
@@ -214,6 +220,7 @@ public class Connection {
         public void disable() {
             try {
 
+                listen = false;
                 if(multicastLock.isHeld())
                     multicastLock.release();
                 socket.leaveGroup(address);
